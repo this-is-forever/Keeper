@@ -56,7 +56,7 @@ public class ExPasswordDialog extends JDialog implements ActionListener, WindowF
         setVisible(true);
         // Return the result (flag is manipulated by another thread)
         char[] password = passwordField.getPassword();
-        if(password.length == 0)
+        if(password.length == 0 || !submitted)
             return null;
         return password;
     }

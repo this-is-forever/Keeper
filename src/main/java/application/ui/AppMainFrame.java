@@ -34,39 +34,52 @@ import java.util.*;
  */
 public class AppMainFrame extends ExFrame implements DocumentListener {
 
+    // Defines the name of the application, affecting window titles
     public static final String APPLICATION_NAME = "Keeper";
-
+    // Defines the filename for the configuration file
     private static final String CONFIGURATION_FILE_NAME = "keeper.cfg";
+    // Defines the filename for the key file, whose data is used to encrypt/decrypt the user's passwords
     private static final String KEY_FILE_NAME = "keeper.key";
 
     // References the text fields used for editing password entries
     private JTextField websiteField, usernameField;
     private ExFocusShowPasswordField passwordField;
+    // References the menu bar, where the Settings menu will appear
+    private JMenuBar menuBar;
+    // References the UI component which displays the list of UIEntries
+    private Box entriesBox;
+    // References the scroll pane that displays entriesBox, allowing the user to scroll when lots of password entries
+    // are being displayed
+    private JScrollPane entryScrollPane;
+    private JCheckBoxMenuItem lowercaseItem, uppercaseItem, numbersItem, symbolsItem;
 
+    // References the manager that will load and save app settings to and from CONFIGURATION_FILE_NAME
     private final ConfigurationManager configuration;
 
-    private JMenuBar menuBar;
-
+    // References the various dialogs used by the program
     private PleaseWaitDialog waitDialog;
     private ExPasswordDialog passwordDialog;
     private InitialSetupDialog initialSetupDialog;
     private ExIntegerDialog passwordLengthDialog;
 
+    // Flag set when the user has altered the current password entry
     private boolean changedWithoutSaving;
+    // Flag set as the app is saving the archive, configuration and key files
     private boolean saving;
+    // References the UIEntry being edited by the user
     private UIEntry currentEntry;
+    // References a list of UIEntry objects, representing the archive's passwords after loading
     private ArrayList<UIEntry> entries;
+    // References a list of UI components that will be disabled when no entry is currently being edited
     private final ArrayList<Component> toggledComponents;
-    private Box entriesBox;
+    // Determines how long generated passwords will be; loaded from config and altered through Settings menu
     private int passwordGeneratorLength;
+    // References the output file location for the archive and the key file
     private File archiveFile, keyFile;
 
+    // References the app's password archive manager, used to encrypt and decrypt password entries and the archive
+    // itself
     private PasswordArchiveManager archiveManager;
-
-    private JScrollPane entryScrollPane;
-
-    private char[] customCharSet;
-    private JCheckBoxMenuItem lowercaseItem, uppercaseItem, numbersItem, symbolsItem, customItem;
 
     public AppMainFrame() {
         super(5);
@@ -76,7 +89,6 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         configuration.load();
 
         passwordGeneratorLength = configuration.getIntProperty("passwordLength", 12);
-        customCharSet = configuration.getProperty("customSet", "").toCharArray();
         String path = configuration.getProperty("archiveFile");
         if(path != null)
             archiveFile = new File(path);
@@ -165,9 +177,6 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         symbolsItem = new JCheckBoxMenuItem("Generate symbols");
         symbolsItem.setState(configuration.getBooleanProperty("symbols", false));
         settingsMenu.add(symbolsItem);
-
-        customItem = new JCheckBoxMenuItem("Generate custom characters");
-        customItem.setState(configuration.getBooleanProperty("custom", false));
 
         JMenuItem configCustomItem = new JMenuItem("Configure custom characters...");
 
@@ -436,10 +445,8 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
                 configuration.putBooleanProperty("lowercase", lowercaseItem.getState());
                 configuration.putBooleanProperty("numbers", numbersItem.getState());
                 configuration.putBooleanProperty("symbols", symbolsItem.getState());
-                configuration.putBooleanProperty("custom", customItem.getState());
 
                 configuration.putIntProperty("passwordLength", passwordGeneratorLength);
-                configuration.put("customSet", new String(customCharSet));
                 if(archiveFile != null)
                     configuration.put("archiveFile", archiveFile.getPath());
                 configuration.store();
@@ -506,7 +513,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         FileInputStream in = null;
         try {
             // Open the archive for reading
-            in = new FileInputStream(new File("archive.bin"));
+            in = new FileInputStream(new File(""));
             // read the first 16 bytes into iv
             in.read(iv);
             // read the rest of the archive into data
