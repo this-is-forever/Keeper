@@ -6,10 +6,12 @@ import swingextended.ExLayer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.IOException;
 
 public class InitialSetupDialog extends JDialog implements WindowListener {
 
@@ -19,20 +21,32 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
 
     private final ExFocusShowPasswordField passwordField;
 
+    private final JFileChooser fileChooser;
+
     private boolean submitted;
 
-    private String firstTimeSetup = "<html><body style='width: 300px'>" +
-            "Welcome to Keeper!<br>For first time set up, please choose where to save your password archive, " +
-            "along with a master password for the archive. You can name your archive file with any name and any " +
-            "extension. Your master password will be required to retrieve your passwords." +
-            " Keeper will remember where your archive file is saved. Additionally, a key file, keeper.key, will be " +
-            "created in the same directory as Keeper.jar. It's recommended that you keep both Keeper and this key file " +
-            "offline, as the key file is needed to decrypt your passwords. This is an additional layer of security." +
-            " Without the key file, your passwords cannot be accessed. Be sure to back up your key file!" +
+    private String firstTimeSetup = "<html><body style='width: 350px'>" +
+            "<center>Welcome to Keeper!</center><br><p align='justify'>For first time set up, please choose where and "
+            + "what to save your password archive as, along with a master password. Additionally, a key file, " +
+            "keeper.key, will be created in the same directory as Keeper.jar. This file is needed to decrypt your " +
+            "passwords, so be sure to create a back up!</p><br>" +
             "</body></html>";
 
     public InitialSetupDialog(AppMainFrame parent, File archiveFile) {
         super(parent, "Configuration");
+        try {
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            Font f = Font.createFont(Font.TRUETYPE_FONT,
+                    AppMainFrame.class.getResource("fonts/OpenSans-Light.ttf").openStream());
+            ge.registerFont(f);
+        } catch (FontFormatException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        fileChooser = new JFileChooser();
+
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         if(!parent.isVisible())
             setLocationByPlatform(true);
@@ -40,20 +54,23 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         setModalityType(ModalityType.APPLICATION_MODAL);
         this.parent = parent;
         if(archiveFile == null)
-            archiveField = new JTextField(40);
+            archiveField = new JTextField(24);
         else
-            archiveField = new JTextField(archiveFile.getPath(), 40);
+            archiveField = new JTextField(archiveFile.getPath(), 30);
         JPanel contentPane = (JPanel)getContentPane();
         contentPane.setBorder(new EmptyBorder(20, 40, 20, 40));
         setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 
-        add(new JLabel(firstTimeSetup));
+        JLabel infoLabel = new JLabel(firstTimeSetup);
+        infoLabel.setFont(new Font("Open Sans Light", Font.PLAIN, 18));
+        add(infoLabel);
+        //add(Box.createVerticalStrut());
 
         ExLayer layer = new ExLayer(ExLayer.LEFT, 5);
         layer.add(new JLabel("Archive file:"));
         add(layer);
 
-        passwordField = new ExFocusShowPasswordField(40);
+        passwordField = new ExFocusShowPasswordField(30);
 
         layer = new ExLayer(ExLayer.CENTER, 5);
         layer.add(archiveField);
@@ -123,7 +140,9 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
     }
 
     private void browseArchive(ActionEvent eventInfo) {
-
+        if(fileChooser.showDialog(this, "Create") == JFileChooser.APPROVE_OPTION) {
+            archiveField.setText(fileChooser.getSelectedFile().getPath());
+        }
     }
 
     @Override

@@ -3,10 +3,7 @@ package application.ui;
 import application.ConfigurationManager;
 import application.Main;
 import crypto.*;
-import swingextended.ExFocusShowPasswordField;
-import swingextended.ExFrame;
-import swingextended.ExLayer;
-import swingextended.ExPasswordDialog;
+import swingextended.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -53,6 +50,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
     private PleaseWaitDialog waitDialog;
     private ExPasswordDialog passwordDialog;
     private InitialSetupDialog initialSetupDialog;
+    private ExIntegerDialog passwordLengthDialog;
 
     private boolean changedWithoutSaving;
     private boolean saving;
@@ -123,6 +121,8 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         PasswordGen.setFlags(true, true, true, true);
 
         waitDialog = new PleaseWaitDialog(this, APPLICATION_NAME);
+        passwordLengthDialog = new ExIntegerDialog(this, "Keeper", "Enter password length:",
+                1, 1024);
 
         UIDefaults defaults = UIManager.getLookAndFeelDefaults();
         Font f = defaults.getFont("TextField.font").deriveFont((float)16);
@@ -147,6 +147,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         menuBar.add(settingsMenu);
 
         JMenuItem passwordLengthItem = new JMenuItem("Set password generator length...");
+        passwordLengthItem.addActionListener(this::showPasswordLengthDialog);
         settingsMenu.add(passwordLengthItem);
 
         lowercaseItem = new JCheckBoxMenuItem("Generate lowercase letters");
@@ -374,6 +375,12 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         PasswordGen.setFlags(uppercaseItem.getState(), lowercaseItem.getState(),
                 numbersItem.getState(), symbolsItem.getState());
         passwordField.setText(new String(PasswordGen.generatePassword(passwordGeneratorLength)));
+    }
+
+    private void showPasswordLengthDialog(ActionEvent eventInfo) {
+        int length = passwordLengthDialog.showAndWait(passwordGeneratorLength);
+        if(length >= 1)
+            passwordGeneratorLength = length;
     }
 
     private void copy(ActionEvent eventInfo) {
