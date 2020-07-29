@@ -203,7 +203,7 @@ public class PasswordArchiveManager {
         Crypto.encryptFile(entryKeyFile, array, databasePassword);
         Crypto.erase(array);
         // Convert all of the entry data to bytes and write them to a byte stream
-        EraseableByteStream byteStream = new EraseableByteStream(16384);
+        ErasableByteStream byteStream = new ErasableByteStream(16384);
         byte[] sizeBytes = new byte[2];
         byte[] stringData;
         ByteBuffer sizeBuffer = ByteBuffer.wrap(sizeBytes);

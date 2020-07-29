@@ -7,12 +7,12 @@ import java.util.Arrays;
  * An implementation of {@link ByteArrayOutputStream} whose underlying byte array can be overwritten for security
  * purposes.
  */
-public class EraseableByteStream extends ByteArrayOutputStream {
+public class ErasableByteStream extends ByteArrayOutputStream {
 
     /**
      * Instantiates a new object with default initial capacity
      */
-    public EraseableByteStream() {
+    public ErasableByteStream() {
         super();
     }
 
@@ -20,7 +20,7 @@ public class EraseableByteStream extends ByteArrayOutputStream {
      * Instantiates a new object with a defined initial capacity
      * @param initialCapacity The number of bytes the stream should be initialized with
      */
-    public EraseableByteStream(int initialCapacity) {
+    public ErasableByteStream(int initialCapacity) {
         super(initialCapacity);
     }
 
