@@ -49,6 +49,8 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         this.parent = parent;
         // Load a font to make the tutorial text pretty
         ResourceManager.loadFonts();
+        // Change the icon
+        setIconImage(((ImageIcon)ResourceManager.loadIcons().get("Padlock16")).getImage());
         // Initialize the file chooser dialog
         fileChooser = new JFileChooser();
         // Do nothing when the user attempts to close the window
@@ -104,6 +106,7 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         layer.add(passwordField);
         Map<String, Icon> icons = ResourceManager.loadIcons();
         JButton showPasswordButton = new JButton(icons.get("View"));
+        showPasswordButton.setToolTipText("Show/Hide Password");
         Dimension d = showPasswordButton.getPreferredSize();
         showPasswordButton.setPreferredSize(new Dimension(d.height, d.height));
         showPasswordButton.addActionListener(this::showPasswordButtonPressed);
