@@ -18,4 +18,4 @@ Keeper uses a two-pronged approach to keeping your passwords safe. As you fill y
 
 When you close Keeper, the entirety of your password archive is encrypted with your master password, thus encrypting your passwords twice. Your key file is also encrypted (using a different salt) with your master password, preventing the key from being accessed by anyone without your master password.
 
-Encryption and decryption is done using AES in CBC mode with SHA256 authentication. scrypt is used to generate 64-byte keys from your master password.
+Encryption and decryption is done using AES in CBC mode with SHA256 authentication to prevent tampering. scrypt is used to generate 64-byte keys from your master password.
