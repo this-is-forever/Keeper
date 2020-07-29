@@ -3,7 +3,7 @@ package crypto;
 /**
  * Defines a password entry, with website, username and password information
  */
-public class Entry implements Comparable {
+public class Entry implements Comparable<Entry> {
 
     // References the entry's website and username
     private String website, username;
@@ -88,19 +88,15 @@ public class Entry implements Comparable {
 
     /**
      * Compares one {@link Entry} object to another, first by their website and then their username
-     * @param o The object to compare to
-     * @return 0 if o is not an {@link Entry} object, otherwise returns an integer value that can be used to determine
-     * whether this {@link Entry} object comes before, after or is equal to another
+     * @param e The object to compare to
+     * @return an integer value that can be used to determine whether this {@link Entry} object comes before,
+     * after or is equal to another
      */
     @Override
-    public int compareTo(Object o) {
-        if(o instanceof Entry) {
-            Entry e = (Entry) o;
-            int comp = website.compareTo(e.getWebsite());
-            if(comp == 0)
-                comp = username.compareTo(e.getUsername());
-            return comp;
-        }
-        return 0;
+    public int compareTo(Entry e) {
+        int comp = website.compareTo(e.getWebsite());
+        if(comp == 0)
+            comp = username.compareTo(e.getUsername());
+        return comp;
     }
 }

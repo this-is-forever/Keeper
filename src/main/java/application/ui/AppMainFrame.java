@@ -5,9 +5,6 @@ import application.Main;
 import crypto.*;
 import swingextended.*;
 
-import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
@@ -18,16 +15,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.List;
 
 /**
  * The main GUI window for the application
@@ -364,7 +353,7 @@ public class AppMainFrame extends ExFrame {
      * changes before saving the archive. If the user chooses Yes or No, closing proceeds.
      * Upon successful closing, the user's settings are saved, the key file is re-encrypted using the user's password,
      * and the archive itself is updated and re-encrypted.
-     * @return
+     * @return true is the user saved or chose not to, or false if they canceled
      */
     @Override
     public boolean closingAttempted() {

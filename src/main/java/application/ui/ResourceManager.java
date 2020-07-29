@@ -25,7 +25,7 @@ public class ResourceManager {
     };
 
     // References a map created by loadIcons that contains icons, retrieved using font names
-    private static Map<String, Icon> icons;
+    private static Map<String, ImageIcon> icons;
 
     // Flag set once the fonts have been loaded, to ensure they only load once
     private static boolean fontsLoaded;
@@ -34,7 +34,7 @@ public class ResourceManager {
      * Loads applications used by the application, defined in {@link ResourceManager#APPLICATION_ICONS}
      * @return A {@link Map <String,  Icon >} object that maps icon names to Icon objects
      */
-    public static Map loadIcons() {
+    public static Map<String, ImageIcon> loadIcons() {
         if(icons != null)
             return icons;
         icons = new HashMap<>();

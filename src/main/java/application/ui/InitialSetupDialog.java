@@ -104,7 +104,7 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         layer = new ExLayer(ExLayer.CENTER, 5);
         passwordField.addActionListener(this::formSubmitted);
         layer.add(passwordField);
-        Map<String, Icon> icons = ResourceManager.loadIcons();
+        Map<String, ImageIcon> icons = ResourceManager.loadIcons();
         JButton showPasswordButton = new JButton(icons.get("View"));
         showPasswordButton.setToolTipText("Show/Hide Password");
         Dimension d = showPasswordButton.getPreferredSize();
