@@ -83,7 +83,7 @@ public class DestroyableKey implements SecretKey {
         if(destroyed)
             throw new IllegalStateException("Key has already been destroyed");
         destroyed = true;
-        Crypto.erase(keyData);
+        Arrays.fill(keyData, (byte)0);
     }
 
     /**

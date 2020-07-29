@@ -1,6 +1,7 @@
 package crypto;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 
 /**
  * An implementation of {@link ByteArrayOutputStream} whose underlying byte array can be overwritten for security
@@ -27,7 +28,7 @@ public class EraseableByteStream extends ByteArrayOutputStream {
      * Overwrites all data in the buffer with zeroes.
      */
     public void erase() {
-        Crypto.erase(buf);
+        Arrays.fill(buf, (byte)0);
     }
 
 }

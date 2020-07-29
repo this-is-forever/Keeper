@@ -16,12 +16,11 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
 /**
  * The main GUI window for the application
  */
-public class AppMainFrame extends ExFrame {
+public class AppMainFrame extends ExLayeredFrame {
 
     // Defines the name of the application, affecting window titles
     public static final String APPLICATION_NAME = "Keeper";
@@ -53,6 +52,8 @@ public class AppMainFrame extends ExFrame {
     private InitialSetupDialog initialSetupDialog;
     private ExIntegerDialog passwordLengthDialog;
 
+    private final PasswordGenerator passwordGenerator;
+
     // Flag set when the user has altered the current password entry
     private boolean changedWithoutSaving;
     // Flag set as the app is saving the archive, configuration and key files
@@ -78,6 +79,8 @@ public class AppMainFrame extends ExFrame {
 
         // Set up the frame's and child dialog's look and feel
         setupLookAndFeel();
+
+        passwordGenerator = new PasswordGenerator();
 
         // Start the toggled components list as an empty list
         toggledComponents = new ArrayList<>();
@@ -404,14 +407,14 @@ public class AppMainFrame extends ExFrame {
      * @param eventInfo Event information passed by Swing
      */
     private void generateButtonPressed(ActionEvent eventInfo) {
-        PasswordGen.setFlags(uppercaseItem.getState(), lowercaseItem.getState(),
+        passwordGenerator.setFlags(uppercaseItem.getState(), lowercaseItem.getState(),
                 numbersItem.getState(), symbolsItem.getState());
-        if(!PasswordGen.anySelected())
+        if(!passwordGenerator.anySelected())
             JOptionPane.showMessageDialog(this,
                     "You must select at least one type of character to generate!", "Error",
                     JOptionPane.ERROR_MESSAGE);
         else
-            passwordField.setText(new String(PasswordGen.generatePassword(passwordGeneratorLength)));
+            passwordField.setText(new String(passwordGenerator.generatePassword(passwordGeneratorLength)));
     }
 
     /**

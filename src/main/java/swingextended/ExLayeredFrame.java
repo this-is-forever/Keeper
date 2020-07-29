@@ -9,17 +9,17 @@ import java.awt.event.WindowListener;
  * A {@link JFrame} whose child components are laid out top to bottom, with space added between and around each
  * component
  */
-public abstract class ExFrame extends JFrame implements WindowListener {
+public abstract class ExLayeredFrame extends JFrame implements WindowListener {
 
     // Defines the padding added around the left, bottom, right and top of each layer
     private int componentSpacing, topSpacing;
 
     /**
-     * Creates a new {@link ExFrame} with given padding around each layer. Sets Swing's look and feel the the OS's
+     * Creates a new {@link ExLayeredFrame} with given padding around each layer. Sets Swing's look and feel the the OS's
      * look and feel in the process.
      * @param componentSpacing The space, in pixels, to place between each layer.
      */
-    public ExFrame(int componentSpacing) {
+    public ExLayeredFrame(int componentSpacing) {
         ExLookAndFeel.set();
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new ExLayeredLayout(this));
@@ -56,7 +56,7 @@ public abstract class ExFrame extends JFrame implements WindowListener {
     public abstract boolean closingAttempted();
 
     /**
-     * Method called when the user attempts to close the window. The {@link ExFrame#closingAttempted()} method is
+     * Method called when the user attempts to close the window. The {@link ExLayeredFrame#closingAttempted()} method is
      * called, disposing the window if it returns true, otherwise closing is aborted
      * @param eventInfo Event information passed by Swing
      */
