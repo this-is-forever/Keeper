@@ -4,11 +4,13 @@ import application.ui.AppMainFrame;
 
 import javax.swing.*;
 
+/**
+ * Program entry point
+ */
 public class Main {
 
     /**
      * Runs the program.
-     * TO-DO: Allow the user to choose where to load the archive from via command line
      * @param args Currently unused arguments from the command line
      */
     public static void main(String[] args) {

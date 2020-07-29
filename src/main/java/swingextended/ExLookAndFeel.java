@@ -2,6 +2,9 @@ package swingextended;
 
 import javax.swing.*;
 
+/**
+ * Used to set Swing's Look & Feel to the user's operating system
+ */
 public class ExLookAndFeel {
 
     // Flag used by setLookAndFeel to ensure the look and feel is only loaded once

@@ -66,10 +66,20 @@ public class Crypto {
         return new DestroyableKey(bytes);
     }
 
+    /**
+     * Generates an array of random bytes to be used for password salting, with length set by
+     * {@link Crypto@SALT_LENGTH}
+     * @return an array of random bytes with the predefined size
+     */
     public static byte[] generateSalt() {
         return randomBytes(SALT_LENGTH);
     }
 
+    /**
+     * Generates an array of random bytes to be used for initialization vectors, with length set by
+     * {@link Crypto#IV_LENGTH}
+     * @return an array of random bytes with the predefined size
+     */
     public static byte[] generateIV() {
         return randomBytes(IV_LENGTH);
     }
@@ -122,6 +132,13 @@ public class Crypto {
         return result;
     }
 
+    /**
+     * Encrypts plaintext information with a given password, saving it to a specified file location
+     * @param f The file to save to
+     * @param plaintext The data to encrypt
+     * @param password The password with which to derive an scrypt key to encrypt with
+     * @return true on success, otherwise false
+     */
     public static boolean encryptFile(File f, byte[] plaintext, char[] password) {
         byte[] salt = randomBytes(SALT_LENGTH);
         byte[] macSalt = randomBytes(SALT_LENGTH);
@@ -269,6 +286,15 @@ public class Crypto {
         }
     }
 
+    /**
+     * Encrypts data using a given key and authorization key. The authorization key will be used to ensure the
+     * data has not been tampered with upon decryption.
+     * @param plaintext The data to encrypt
+     * @param key A key to encrypt with
+     * @param authKey A key to derive authorization data with
+     * @return a byte[] with the resulting information, including password salt, IV data, authorization data, and the
+     * generated ciphertext
+     */
     public static byte[] encrypt(byte[] plaintext, SecretKey key, SecretKey authKey) {
         /* Generate an initialization vector for encryption
          * The IV is used in combination with the key to encrypt data and is used during decryption
@@ -350,6 +376,7 @@ public class Crypto {
             // Place all of the required information for later decryption (aside from the key) in a byte array
             ByteBuffer byteBuffer = ByteBuffer.allocate(salt.length + authSalt.length + iv.length +
                     Short.BYTES + macData.length + Integer.BYTES + ciphertext.length);
+            // Place each bit of information in the buffer and then write over each source array
             byteBuffer.put(salt);
             erase(salt);
             byteBuffer.put(authSalt);

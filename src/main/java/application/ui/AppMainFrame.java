@@ -32,10 +32,12 @@ import java.util.*;
 /**
  * The main GUI window for the application
  */
-public class AppMainFrame extends ExFrame implements DocumentListener {
+public class AppMainFrame extends ExFrame {
 
     // Defines the name of the application, affecting window titles
     public static final String APPLICATION_NAME = "Keeper";
+    // Defines the font used in the form fields
+    public static Font FORM_FONT;
     // Defines the filename for the configuration file
     private static final String CONFIGURATION_FILE_NAME = "keeper.cfg";
     // Defines the filename for the key file, whose data is used to encrypt/decrypt the user's passwords
@@ -82,24 +84,48 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
     private PasswordArchiveManager archiveManager;
 
     public AppMainFrame() {
+        // Place 5 pixels of spacing between layers and around the edges of the frame
         super(5);
+
+        // Set up the frame's and child dialog's look and feel
+        setupLookAndFeel();
+
+        // Start the toggled components list as an empty list
         toggledComponents = new ArrayList<>();
+
+        // Create a handle to the configuration file
         File configFile = new File(Main.getExecutableDirectory() + CONFIGURATION_FILE_NAME);
+        // Load the app's configuration
         configuration = new ConfigurationManager(configFile);
         configuration.load();
 
+        // Set the password generator's length to the value defined in the user's config, or 12 if not configured
         passwordGeneratorLength = configuration.getIntProperty("passwordLength", 12);
+
+        // Determine where the user's archive is saved
         String path = configuration.getProperty("archiveFile");
+        // Was the archive file's path defined?
         if(path != null)
+            // Yes; create a handle to the archive file
             archiveFile = new File(path);
         else
+            // No; set archiveFile to null so createAndShow knows to prompt the user for an archive file
             archiveFile = null;
     }
 
+    /**
+     * Method called on the Swing UI thread that creates the application's GUI and makes it visible. Most of the
+     * app's functionality is defined here.
+     */
     public void createAndShow() {
+        // Initialize the password dialog
         passwordDialog = new ExPasswordDialog(this, "Password required");
+        // Initialize the setup dialog
         initialSetupDialog = new InitialSetupDialog(this, archiveFile);
+        // Determine where the key file is saved
         keyFile = new File(Main.getExecutableDirectory() + KEY_FILE_NAME);
+
+        // If the archive file was defined in the config and it exists, prompt the user for the archive password
         if(archiveFile != null && archiveFile.exists()) {
             char[] password = passwordDialog.showAndWait();
             if(password == null)
@@ -112,6 +138,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
                 System.exit(0);
             }
         } else {
+            // Otherwise, show the initial setup dialog and wait for the user to finish
             if(!initialSetupDialog.showAndWait())
                 System.exit(0);
             archiveFile = new File(initialSetupDialog.getArchivePath());
@@ -122,35 +149,20 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
                         "Error", JOptionPane.ERROR_MESSAGE);
                 System.exit(0);
             }
+            // If the key file doesn't exist yet the archive file does, we have a problem - they key file is required
+            // in order to access the archive's passwords
             if(!keyFile.exists() && archiveFile.exists()) {
                 JOptionPane.showMessageDialog(this, "Unable to find key file for the chosen" +
                         "archive file!", "Error", JOptionPane.ERROR_MESSAGE);
                 System.exit(0);
             }
         }
+        // Begin constructing the GUI
         setTitle(APPLICATION_NAME);
-
-        PasswordGen.setFlags(true, true, true, true);
 
         waitDialog = new PleaseWaitDialog(this, APPLICATION_NAME);
         passwordLengthDialog = new ExIntegerDialog(this, "Keeper", "Enter password length:",
                 1, 1024);
-
-        UIDefaults defaults = UIManager.getLookAndFeelDefaults();
-        Font f = defaults.getFont("TextField.font").deriveFont((float)16);
-        UIEntry.SELECTED_FOREGROUND_COLOR = defaults.getColor("List.selectionForeground");
-        UIEntry.SELECTED_BACKGROUND_COLOR = defaults.getColor("List.selectionBackground");
-        UIEntry.SELECTED_BORDER = new LineBorder(UIEntry.SELECTED_BACKGROUND_COLOR, UIEntry.BORDER_THICKNESS);
-        UIEntry.UNSELECTED_FOREGROUND_COLOR = defaults.getColor("List.foreground");
-        UIEntry.UNSELECTED_BACKGROUND_COLOR = defaults.getColor("List.background");
-        UIEntry.UNSELECTED_BORDER = new LineBorder(UIEntry.UNSELECTED_BACKGROUND_COLOR, UIEntry.BORDER_THICKNESS);
-        char echoChar = (char)defaults.get("PasswordField.echoChar");
-        UIEntry.ECHO_CHAR_STRING = Character.toString(echoChar).repeat(12);
-        Object clickIntervalObj = Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
-        if(clickIntervalObj instanceof Integer)
-            UIEntry.DOUBLE_CLICK_INTERVAL = (int)clickIntervalObj;
-        else
-            UIEntry.DOUBLE_CLICK_INTERVAL = 500;
 
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
@@ -159,7 +171,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         menuBar.add(settingsMenu);
 
         JMenuItem passwordLengthItem = new JMenuItem("Set password generator length...");
-        passwordLengthItem.addActionListener(this::showPasswordLengthDialog);
+        passwordLengthItem.addActionListener(this::configurePasswordLengthItemPressed);
         settingsMenu.add(passwordLengthItem);
 
         lowercaseItem = new JCheckBoxMenuItem("Generate lowercase letters");
@@ -178,12 +190,9 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         symbolsItem.setState(configuration.getBooleanProperty("symbols", false));
         settingsMenu.add(symbolsItem);
 
-        JMenuItem configCustomItem = new JMenuItem("Configure custom characters...");
-
         entriesBox = Box.createVerticalBox();
         entryScrollPane = new JScrollPane(entriesBox);
         entriesBox.add(Box.createVerticalGlue());
-        UIEntry.FONT = f;
 
         entryScrollPane.setPreferredSize(new Dimension(-1, 400));
         Color borderColor = ((LineBorder)entryScrollPane.getBorder()).getLineColor();
@@ -193,34 +202,34 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
 
         ExLayer layer = newLayer(ExLayer.CENTER);
 
+        DocumentListener formChangedListener = new FieldChangedListener();
         websiteField = new JTextField(16);
-        websiteField.setFont(f);
-        websiteField.getDocument().addDocumentListener(this);
+        websiteField.setFont(FORM_FONT);
+        websiteField.getDocument().addDocumentListener(formChangedListener);
         toggledComponents.add(websiteField);
         layer.add(websiteField);
 
         usernameField = new JTextField(16);
-        usernameField.setFont(f);
-        usernameField.getDocument().addDocumentListener(this);
+        usernameField.setFont(FORM_FONT);
+        usernameField.getDocument().addDocumentListener(formChangedListener);
         toggledComponents.add(usernameField);
         layer.add(usernameField);
         layer.validate();
         Dimension layerSize = layer.getPreferredSize();
-        layerSize.width = 1000;
+        layerSize.width = 10000;
         layer.setMaximumSize(layerSize);
 
         layer = newLayer(ExLayer.CENTER);
 
         passwordField = new ExFocusShowPasswordField(32);
         passwordField.enableInputMethods(true);
-        passwordField.setFont(f);
-        passwordField.getDocument().addDocumentListener(this);
+        passwordField.setFont(FORM_FONT);
+        passwordField.getDocument().addDocumentListener(formChangedListener);
         toggledComponents.add(passwordField);
         layer.add(passwordField);
 
-        final String[] iconNames = { "Generate.png", "Remove.png", "Copy.png", "Padlock64.png", "Padlock16.png"};
-        Map<String, ImageIcon> icons= loadIcons(iconNames);
-        Icon icon = icons.get("Copy.png");
+        Map<String, ImageIcon> icons = ResourceManager.loadIcons();
+        Icon icon = icons.get("Copy");
         int buttonWidth = icon.getIconWidth() + 8;
         int buttonHeight = icon.getIconHeight() + 8;
         Dimension buttonSize = new Dimension(buttonWidth, buttonHeight);
@@ -230,51 +239,49 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         button.setToolTipText("Copy Password to Clipboard");
         button.setPreferredSize(buttonSize);
         button.setFocusable(false);
-        button.addActionListener(this::copy);
+        button.addActionListener(this::copyButtonPressed);
         toggledComponents.add(button);
         layer.add(button);
 
         button = new JButton();
-        button.setIcon(icons.get("Generate.png"));
+        button.setIcon(icons.get("Generate"));
         button.setToolTipText("Generate New Password");
         button.setPreferredSize(buttonSize);
         button.setFocusable(false);
-        button.addActionListener(this::generate);
+        button.addActionListener(this::generateButtonPressed);
         toggledComponents.add(button);
         layer.add(button);
 
         ArrayList<Image> windowIcons = new ArrayList<>(2);
-        windowIcons.add(icons.get("Padlock64.png").getImage());
-        windowIcons.add(icons.get("Padlock16.png").getImage());
+        windowIcons.add(icons.get("Padlock64").getImage());
+        windowIcons.add(icons.get("Padlock16").getImage());
         setIconImages(windowIcons);
 
         button = new JButton();
-        button.setIcon(icons.get("Remove.png"));
+        button.setIcon(icons.get("Remove"));
         button.setPreferredSize(buttonSize);
         button.setFocusable(false);
         button.setToolTipText("Delete this Password Entry");
-        button.addActionListener(this::removeEntry);
+        button.addActionListener(this::removeButtonPressed);
         toggledComponents.add(button);
         layer.add(button);
         layer.validate();
-        layer.getPreferredSize();
-        layerSize.width = 1000;
         layer.setMaximumSize(layerSize);
 
         layer = newLayer(ExLayer.CENTER);
 
         button = new JButton("Save Entry Changes");
-        button.addActionListener(this::saveChanges);
+        button.addActionListener(this::saveChangesButtonPressed);
         toggledComponents.add(button);
         layer.add(button);
 
         button = new JButton("Discard Entry Changes");
-        button.addActionListener(this::discardChanges);
+        button.addActionListener(this::discardChangesButtonPressed);
         toggledComponents.add(button);
         layer.add(button);
 
         button = new JButton("Add New Entry");
-        button.addActionListener(this::newEntry);
+        button.addActionListener(this::newEntryButtonPressed);
         layer.add(button);
 
         layer.validate();
@@ -291,7 +298,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
             entries = new ArrayList<>();
         } else {
             SwingUtilities.invokeLater(() ->
-                    waitDialog.showSelf(true));
+                    waitDialog.showSelf(PleaseWaitDialog.OPENING_MESSAGE));
             new Thread(() ->{
                 ArrayList<Entry> archive = archiveManager.openDatabase(archiveFile);
                 if(archive == null) {
@@ -314,121 +321,39 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         }
     }
 
-    private void saveChanges(ActionEvent eventInfo) {
-        Entry e = currentEntry.getEntry();
-        e.setWebsite(websiteField.getText());
-        e.setUsername(usernameField.getText());
-        e.setPassword(archiveManager, passwordField.getPassword());
-        currentEntry.update();
-        currentEntry.changesMade();
-        changedWithoutSaving = false;
+    public static void setupLookAndFeel() {
+        UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+        FORM_FONT = defaults.getFont("TextField.font").deriveFont((float)16);
+        UIEntry.setupLookAndFeel();
     }
 
-    private void discardChanges(ActionEvent eventInfo) {
-        Entry entry = currentEntry.getEntry();
-        websiteField.setText(entry.getWebsite());
-        usernameField.setText(entry.getUsername());
-        passwordField.setText(entry.getPassword(archiveManager));
-        changedWithoutSaving = false;
-    }
-
-    private void newEntry(ActionEvent eventInfo) {
-        if (changedWithoutSaving) {
-            if (!promptSaveEntry())
+    /**
+     * Method called by a {@link UIEntry} object when the object is double-clicked by the user.
+     * If changes have been made to the currently selected object, the user is prompted to see if they want to save
+     * changes. The clicked entry is only selected if the user clicks Yes or No, no changes were made to the
+     * currently selected entry, or no entry had been selected yet.
+     * If any of the above are true, the double-clicked entry is displayed in the form.
+     * @param uiEntry The calling {@link UIEntry}
+     */
+    public void entryClicked(UIEntry uiEntry) {
+        if(changedWithoutSaving) {
+            if(!promptSaveEntry())
                 return;
-            else
-                changedWithoutSaving = false;
         } else if(currentEntry != null)
             currentEntry.deselected(false);
-        UIEntry newEntry = new UIEntry(this, new Entry("", "", null));
-        newEntry.selected();
-        displayEntry(newEntry);
-        entriesBox.add(newEntry, entriesBox.getComponentCount() - 1);
-        entries.add(newEntry);
-        //entriesBox.validate();
-        entryScrollPane.revalidate();
-        SwingUtilities.invokeLater(() -> {
-            JScrollBar scrollBar = entryScrollPane.getVerticalScrollBar();
-            scrollBar.setValue(scrollBar.getMaximum());
-        });
+        displayEntry(uiEntry);
         setFormEnabled(true);
         websiteField.requestFocus();
     }
 
-    private void removeEntry(ActionEvent eventInfo) {
-        if(currentEntry != null) {
-            int index = entries.indexOf(currentEntry);
-            currentEntry = null;
-            entries.remove(index);
-            entriesBox.remove(index);
-            entriesBox.revalidate();
-            entriesBox.repaint();
-        }
-        clearForm();
-        setFormEnabled(false);
-    }
-
-    private void setFormEnabled(boolean b) {
-        for(Component c : toggledComponents)
-            c.setEnabled(b);
-    }
-
-    private void clearForm() {
-        websiteField.setText("");
-        usernameField.setText("");
-        passwordField.setText("");
-        changedWithoutSaving = false;
-    }
-
-    private void generate(ActionEvent eventInfo) {
-        PasswordGen.setFlags(uppercaseItem.getState(), lowercaseItem.getState(),
-                numbersItem.getState(), symbolsItem.getState());
-        passwordField.setText(new String(PasswordGen.generatePassword(passwordGeneratorLength)));
-    }
-
-    private void showPasswordLengthDialog(ActionEvent eventInfo) {
-        int length = passwordLengthDialog.showAndWait(passwordGeneratorLength);
-        if(length >= 1)
-            passwordGeneratorLength = length;
-    }
-
-    private void copy(ActionEvent eventInfo) {
-        copyToClipboard(new String(passwordField.getPassword()));
-    }
-
-    private void copyToClipboard(String s) {
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        assert tk != null : "Unable to fetch system toolkit";
-        Clipboard clipboard = tk.getSystemClipboard();
-        assert clipboard != null : "Unable to fetch system clipboard";
-        StringSelection clip = new StringSelection(s);
-        clipboard.setContents(clip, null);
-    }
-
-    private void displayEntry(UIEntry uiEntry) {
-        Entry entry = uiEntry.getEntry();
-        websiteField.setText(entry.getWebsite());
-        usernameField.setText(entry.getUsername());
-        passwordField.setText(entry.getPassword(archiveManager));
-        currentEntry = uiEntry;
-        currentEntry.selected();
-
-        changedWithoutSaving = false;
-    }
-
-    private Map loadIcons(String [] iconNames) {
-        Map<String, Icon> icons = new HashMap<>();
-        for(String s : iconNames) {
-            try {
-                ImageIcon icon = new ImageIcon(ImageIO.read(AppMainFrame.class.getResource("icons/" + s)));
-                icons.put(s, icon);
-            } catch (IOException e) {
-                System.err.println("Unable to load icon " + s);
-            }
-        }
-        return icons;
-    }
-
+    /**
+     * Method called when the user attempts to close the application.
+     * If any changes have been made to the currently selected entry, prompts the user to see if they want to commit
+     * changes before saving the archive. If the user chooses Yes or No, closing proceeds.
+     * Upon successful closing, the user's settings are saved, the key file is re-encrypted using the user's password,
+     * and the archive itself is updated and re-encrypted.
+     * @return
+     */
     @Override
     public boolean closingAttempted() {
         if(changedWithoutSaving)
@@ -439,7 +364,7 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
         // Only execute once
         if(!saving) {
             saving = true;
-            SwingUtilities.invokeLater(() -> waitDialog.showSelf(false));
+            SwingUtilities.invokeLater(() -> waitDialog.showSelf(PleaseWaitDialog.SAVING_MESSAGE));
             new Thread(() -> {
                 configuration.putBooleanProperty("uppercase", uppercaseItem.getState());
                 configuration.putBooleanProperty("lowercase", lowercaseItem.getState());
@@ -456,58 +381,225 @@ public class AppMainFrame extends ExFrame implements DocumentListener {
                 archiveManager.closeDatabase(archiveFile, entries);
                 passwordDialog.dispose();
                 waitDialog.dispose();
+                passwordLengthDialog.dispose();
                 dispose();
             }).start();
         }
         return false;
     }
 
+    /**
+     * Method called when the user clicks the Copy button. Copies the current entry's password to the clipboard.
+     * @param eventInfo Event information passed by Swing
+     */
+    private void copyButtonPressed(ActionEvent eventInfo) {
+        copyToClipboard(new String(passwordField.getPassword()));
+    }
+
+    /**
+     * Method called when the user clicks the Generate New Password button. Generates a new password defined by the
+     * user's settings with a given length and list of possible symbols. Options for password generation are changed in
+     * the Settings menu and are loaded & saved upon program start and exit, respectively.
+     * @param eventInfo Event information passed by Swing
+     */
+    private void generateButtonPressed(ActionEvent eventInfo) {
+        PasswordGen.setFlags(uppercaseItem.getState(), lowercaseItem.getState(),
+                numbersItem.getState(), symbolsItem.getState());
+        if(!PasswordGen.anySelected())
+            JOptionPane.showMessageDialog(this,
+                    "You must select at least one type of character to generate!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        else
+            passwordField.setText(new String(PasswordGen.generatePassword(passwordGeneratorLength)));
+    }
+
+    /**
+     * Method called when the user presses the Remove Entry button. Removes the currently selected password entry
+     * from the archive.
+     * @param eventInfo Event information passed by Swing
+     */
+    private void removeButtonPressed(ActionEvent eventInfo) {
+        if(currentEntry != null) {
+            int index = entries.indexOf(currentEntry);
+            currentEntry = null;
+            entries.remove(index);
+            entriesBox.remove(index);
+            entriesBox.revalidate();
+            entriesBox.repaint();
+        }
+        clearForm();
+        setFormEnabled(false);
+    }
+
+    /**
+     * Method called when the Save Entry Changes button is pressed. Commits any changes made to the selected entry.
+     * @param eventInfo Event information passed by Swing
+     */
+    private void saveChangesButtonPressed(ActionEvent eventInfo) {
+        Entry e = currentEntry.getEntry();
+        e.setWebsite(websiteField.getText());
+        e.setUsername(usernameField.getText());
+        e.setPassword(archiveManager, passwordField.getPassword());
+        currentEntry.updateLabels();
+        currentEntry.changesMade();
+        changedWithoutSaving = false;
+    }
+
+    /**
+     * Method called when the Discard Entry Changes button is pressed. Resets any changes made to the currently selected
+     * password entry.
+     * @param eventInfo Event info passed by Swing
+     */
+    private void discardChangesButtonPressed(ActionEvent eventInfo) {
+        Entry entry = currentEntry.getEntry();
+        websiteField.setText(entry.getWebsite());
+        usernameField.setText(entry.getUsername());
+        passwordField.setText(entry.getPassword(archiveManager));
+        changedWithoutSaving = false;
+    }
+
+    /**
+     * Method called when the New Entry button is pressed. Adds a new password entry to the archive, prompting the user
+     * to save changes to the current entry if any changes have been made.
+     * @param eventInfo Event information passed by Swing.
+     */
+    private void newEntryButtonPressed(ActionEvent eventInfo) {
+        if (changedWithoutSaving) {
+            if (!promptSaveEntry())
+                return;
+            else
+                changedWithoutSaving = false;
+        } else if(currentEntry != null)
+            currentEntry.deselected(false);
+        UIEntry newEntry = new UIEntry(this, new Entry("", "", null));
+        newEntry.selected();
+        displayEntry(newEntry);
+        entriesBox.add(newEntry, entriesBox.getComponentCount() - 1);
+        entries.add(newEntry);
+        entryScrollPane.revalidate();
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar scrollBar = entryScrollPane.getVerticalScrollBar();
+            scrollBar.setValue(scrollBar.getMaximum());
+        });
+        setFormEnabled(true);
+        websiteField.requestFocus();
+    }
+
+    /**
+     * Method called when the Configure Password Generator Length menu item under the Settings menu is pressed. Shows
+     * the generator length dialog, allowing the user to change how long generated passwords will be.
+     * @param eventInfo Even information passed by Swing
+     */
+    private void configurePasswordLengthItemPressed(ActionEvent eventInfo) {
+        int length = passwordLengthDialog.showAndWait(passwordGeneratorLength);
+        if(length >= 1)
+            passwordGeneratorLength = length;
+    }
+
+    /**
+     * Enabled or disables all of the components in {@link AppMainFrame#toggledComponents}.
+     * @param b true if the components should be enabled, otherwise false
+     */
+    private void setFormEnabled(boolean b) {
+        for(Component c : toggledComponents)
+            c.setEnabled(b);
+    }
+
+    /**
+     * Clears the form, emptying the website, username and password fields and resets the changedWithoutSaving flag.
+     */
+    private void clearForm() {
+        websiteField.setText("");
+        usernameField.setText("");
+        passwordField.setText("");
+        changedWithoutSaving = false;
+    }
+
+    /**
+     * Copies a string of text to the clipboard.
+     * @param s A {@link String} object with text to copy to the clipboard.
+     */
+    private void copyToClipboard(String s) {
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        if(tk == null) {
+            System.out.println("Unable to fetch system toolkit");
+            return;
+        }
+        Clipboard clipboard = tk.getSystemClipboard();
+        if(clipboard == null) {
+            System.out.println("Unable to fetch system clipboard");
+            return;
+        }
+        StringSelection clip = new StringSelection(s);
+        clipboard.setContents(clip, null);
+    }
+
+    /**
+     * Displays a given password entry, filling the form with its information. Resets the changedWithoutSaving flag in
+     * the process.
+     * @param uiEntry A reference to a {@link UIEntry to display} object representing the password entry to display
+     */
+    private void displayEntry(UIEntry uiEntry) {
+        Entry entry = uiEntry.getEntry();
+        websiteField.setText(entry.getWebsite());
+        usernameField.setText(entry.getUsername());
+        passwordField.setText(entry.getPassword(archiveManager));
+        currentEntry = uiEntry;
+        currentEntry.selected();
+
+        changedWithoutSaving = false;
+    }
+
+    /**
+     * Prompts the user to choose whether they want to commit changes made to the currently selected password entry.
+     * If the user chooses Yes, changes are saved; if No, the changes are discarded; if Cancel, nothing happens and the
+     * method returns false.
+     * @return true if Yes or No were chosen, otherwise false
+     */
     private boolean promptSaveEntry() {
         final int option = JOptionPane.showConfirmDialog(this, "Do you want to save changes" +
                 " to the current entry?");
         if(option == JOptionPane.CANCEL_OPTION)
             return false;
+        // Update the current entry if one was being edited
         if(currentEntry != null) {
             if (option == JOptionPane.YES_OPTION) {
                 Entry e = currentEntry.getEntry();
                 e.setWebsite(websiteField.getText());
                 e.setUsername(usernameField.getText());
                 e.setPassword(archiveManager, passwordField.getPassword());
-                currentEntry.update();
+                currentEntry.updateLabels();
                 currentEntry.deselected(true);
             } else
                 currentEntry.deselected(false);
         }
+        // Notify the user either saved or chose not to
         return true;
     }
 
-    public void entryClicked(UIEntry uiEntry) {
-        if(changedWithoutSaving) {
-            if(!promptSaveEntry())
-                return;
-        } else if(currentEntry != null)
-            currentEntry.deselected(false);
-        displayEntry(uiEntry);
-        setFormEnabled(true);
-        websiteField.requestFocus();
+    /**
+     * Inner class used to set the changedWithoutSaving flag when the user makes changes to an entry
+     */
+    private class FieldChangedListener implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            changedWithoutSaving = true;
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            changedWithoutSaving = true;
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            changedWithoutSaving = true;
+        }
+
     }
 
-    @Override
-    public void insertUpdate(DocumentEvent e) {
-        changedWithoutSaving = true;
-    }
-
-    @Override
-    public void removeUpdate(DocumentEvent e) {
-        changedWithoutSaving = true;
-    }
-
-    @Override
-    public void changedUpdate(DocumentEvent e) {
-        changedWithoutSaving = true;
-    }
-
-    public void oldOpen() {
+    private void oldOpen() {
         byte[] iv = new byte[16];
         byte[] data = null;
         FileInputStream in = null;

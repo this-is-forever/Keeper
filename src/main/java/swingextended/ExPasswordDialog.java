@@ -7,6 +7,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 
+/**
+ * A dialog window which will prompt the user for a password.
+ */
 public class ExPasswordDialog extends JDialog implements ActionListener, WindowFocusListener {
     // A reference to the text box in which the user will enter a password
     private JPasswordField passwordField;

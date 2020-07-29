@@ -4,6 +4,9 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.*;
 
+/**
+ * A dialog which prompts the user for an integer value between a given lower and upper bound (inclusive)
+ */
 public class ExIntegerDialog extends JDialog implements ActionListener, WindowFocusListener, KeyListener {
     // A reference to the text box in which the user will enter a password
     private JTextField inputField;
@@ -14,11 +17,17 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
     // A flag set when the user hits Ok or presses Enter
     private boolean submitted;
 
+    // Defines the lower and upper bounds of the dialog's range of valid input values
     private final int lowerBound, upperBound;
 
     /**
-     * Creates a new {@link ExPasswordDialog} object
-     * @param owner A reference to the dialog's owner
+     * Creates a new {@link ExIntegerDialog} object with a given parent, title, prompt text, lower bound and
+     * upper bound
+     * @param owner A reference to the dialog's parent window
+     * @param title A {@link String} containing text that will be displayed on the title bar
+     * @param prompt A {@link String} containing text that will be displayed in the prompt
+     * @param lowerBound the lower bound of valid values for this dialog
+     * @param upperBound the upper bound (inclusive) of valid values for this dialog
      */
     public ExIntegerDialog(JFrame owner, String title, String prompt, int lowerBound, int upperBound) {
         super(owner);
@@ -31,20 +40,16 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
         create(prompt);
     }
 
-    public void setParent(JFrame owner) {
-        this.owner = owner;
-    }
-
     /**
-     * Clears the text in the password field
+     * Clears the text in the input field
      */
     public void clear() {
         inputField.setText("");
     }
 
     /**
-     * Displays the password dialog and waits until the user enters the information or cancels
-     * @return true if the user entered a password, otherwise false (the user canceled)
+     * Displays the input dialog and waits until the user enters the information or cancels
+     * @return the value the user entered if the form was submitted, otherwise -1
      */
     public int showAndWait(int initialValue) {
         // Reset the submitted flag
@@ -91,17 +96,12 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
     /**
      * Ensures the main application window is brought to the front when the application loses and then regains
      * focus while the dialog is open
-     * @param e Event information passed by Swing
+     * @param eventInfo Event information passed by Swing
      */
     @Override
-    public void windowGainedFocus(WindowEvent e) {
+    public void windowGainedFocus(WindowEvent eventInfo) {
         if(owner != null)
             owner.toFront();
-    }
-
-    @Override
-    public void windowLostFocus(WindowEvent e) {
-
     }
 
     /**
@@ -153,11 +153,22 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
         pack();
     }
 
+    /**
+     * Method called when the user presses a key within the input field. Ensures only number characters are
+     * read.
+     * @param eventInfo Information about the event passed by Swing
+     */
     @Override
-    public void keyTyped(KeyEvent e) {
-        char input = e.getKeyChar();
+    public void keyTyped(KeyEvent eventInfo) {
+        char input = eventInfo.getKeyChar();
         if(input < '0' || input > '9')
-            e.consume();
+            eventInfo.consume();
+    }
+
+    // Remaining methods were required to implement the WindowFocusListener and KeyListener interfaces
+    @Override
+    public void windowLostFocus(WindowEvent e) {
+
     }
 
     @Override

@@ -48,8 +48,6 @@ public class ExLayer extends Box {
         }
     }
 
-
-
     /**
      * Creates a new, empty later with the given alignment of components
      * @param alignment The desired alignment
@@ -67,13 +65,20 @@ public class ExLayer extends Box {
         }
     }
 
+    /**
+     * Adds a component to the layer without adding spacing between it and the preceding component
+     * @param c The {@link Component} to add to the layer
+     * @return a reference to the added {@link Component}
+     */
     public Component addWithoutSpacing(Component c) {
         return super.add(c);
     }
 
     /**
-     * Adds a component to the layer. New components are added to the right of existing components
-     * @param c
+     * Adds a component to the layer. New components are added to the right of existing components. If this isn't the
+     * first component added to the layer, a horizontal strut is placed between the new component and the one
+     * that was added before it
+     * @param c The {@link Component} to add
      * @return A reference to the {@link Component} added
      */
     @Override
