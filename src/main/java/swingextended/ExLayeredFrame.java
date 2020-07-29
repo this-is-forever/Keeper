@@ -6,8 +6,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 /**
- * A {@link JFrame} whose child components are laid out top to bottom, with space added between and around each
- * component
+ * A {@link JFrame} whose child components consist of {@link ExLayer} components stacked vertically, added
+ * top to bottom.
  */
 public abstract class ExLayeredFrame extends JFrame implements WindowListener {
 
@@ -62,8 +62,9 @@ public abstract class ExLayeredFrame extends JFrame implements WindowListener {
      */
     @Override
     public void windowClosing(WindowEvent eventInfo) {
-        if(closingAttempted())
+        if(closingAttempted()) {
             dispose();
+        }
     }
 
     // Remaining methods are required implementations for the WindowListener interface

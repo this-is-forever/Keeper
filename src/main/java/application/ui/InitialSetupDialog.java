@@ -57,16 +57,18 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         // Move the window to the OS's default location for new windows in the event the parent window isn't yet
         // visible
-        if(!parent.isVisible())
+        if(!parent.isVisible()) {
             setLocationByPlatform(true);
+        }
         // Ensure the dialog blocks the parent window while open
         setModal(true);
         setModalityType(ModalityType.APPLICATION_MODAL);
         // Place the starting file location in the form if one was given, otherwise leave it blank
-        if(archiveFile == null)
+        if(archiveFile == null) {
             archiveField = new JTextField(24);
-        else
+        } else {
             archiveField = new JTextField(archiveFile.getPath(), 24);
+        }
         // Add generous padding around the window's content
         JPanel contentPane = (JPanel)getContentPane();
         contentPane.setBorder(new EmptyBorder(20, 40, 10, 40));
@@ -137,8 +139,9 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
      */
     public boolean showAndWait() {
         // Move the window in front of its parent if the parent is visible
-        if(parent != null && parent.isVisible())
+        if(parent != null && parent.isVisible()) {
             setLocationRelativeTo(parent);
+        }
         // Display the window; this thread blocks here until the dialog is made invisible via setVisible(false)
         setVisible(true);
         // Return the result
@@ -223,12 +226,14 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
     private char echoChar;
     private void showPasswordButtonPressed(ActionEvent e) {
         char setChar = passwordField.getEchoChar();
-        if(echoChar == 0)
+        if(echoChar == 0) {
             echoChar = passwordField.getEchoChar();
-        if(setChar == 0)
+        }
+        if(setChar == 0) {
             passwordField.setEchoChar(echoChar);
-        else
+        } else {
             passwordField.setEchoChar('\0');
+        }
     }
 
     // The following methods do nothing; they are required while implementing the WindowListener interface

@@ -97,12 +97,13 @@ public class AppMainFrame extends ExLayeredFrame {
         // Determine where the user's archive is saved
         String path = configuration.getProperty("archiveFile");
         // Was the archive file's path defined?
-        if(path != null)
+        if(path != null) {
             // Yes; create a handle to the archive file
             archiveFile = new File(path);
-        else
+        } else {
             // No; set archiveFile to null so createAndShow knows to prompt the user for an archive file
             archiveFile = null;
+        }
     }
 
     /**
@@ -129,8 +130,9 @@ public class AppMainFrame extends ExLayeredFrame {
         // If the archive file was defined in the config and it exists, prompt the user for the archive password
         if(archiveFile != null && archiveFile.exists()) {
             char[] password = passwordDialog.showAndWait();
-            if(password == null)
+            if(password == null) {
                 System.exit(0);
+            }
             try {
                 archiveManager = new PasswordArchiveManager(password, keyFile);
             } catch(InvalidPasswordException e) {
@@ -140,8 +142,9 @@ public class AppMainFrame extends ExLayeredFrame {
             }
         } else {
             // Otherwise, show the initial setup dialog and wait for the user to finish
-            if(!initialSetupDialog.showAndWait())
+            if(!initialSetupDialog.showAndWait()) {
                 System.exit(0);
+            }
             archiveFile = new File(initialSetupDialog.getArchivePath());
             try {
                 archiveManager = new PasswordArchiveManager(initialSetupDialog.getPassword(), keyFile);
@@ -343,8 +346,9 @@ public class AppMainFrame extends ExLayeredFrame {
         if(changedWithoutSaving) {
             if(!promptSaveEntry())
                 return;
-        } else if(currentEntry != null)
+        } else if(currentEntry != null) {
             currentEntry.deselected(false);
+        }
         displayEntry(uiEntry);
         setFormEnabled(true);
         websiteField.requestFocus();
@@ -360,11 +364,14 @@ public class AppMainFrame extends ExLayeredFrame {
      */
     @Override
     public boolean closingAttempted() {
-        if(changedWithoutSaving)
-            if(!promptSaveEntry())
+        if(changedWithoutSaving) {
+            if (!promptSaveEntry()) {
                 return false;
-            else
+            } else {
                 changedWithoutSaving = false;
+            }
+        }
+
         // Only execute once
         if(!saving) {
             saving = true;
@@ -376,8 +383,9 @@ public class AppMainFrame extends ExLayeredFrame {
                 configuration.putBooleanProperty("symbols", symbolsItem.getState());
 
                 configuration.putIntProperty("passwordLength", passwordGeneratorLength);
-                if(archiveFile != null)
+                if(archiveFile != null) {
                     configuration.put("archiveFile", archiveFile.getPath());
+                }
                 configuration.store();
 
                 copyToClipboard("");
@@ -409,12 +417,13 @@ public class AppMainFrame extends ExLayeredFrame {
     private void generateButtonPressed(ActionEvent eventInfo) {
         passwordGenerator.setFlags(uppercaseItem.getState(), lowercaseItem.getState(),
                 numbersItem.getState(), symbolsItem.getState());
-        if(!passwordGenerator.anySelected())
+        if(!passwordGenerator.anySelected()) {
             JOptionPane.showMessageDialog(this,
                     "You must select at least one type of character to generate!", "Error",
                     JOptionPane.ERROR_MESSAGE);
-        else
+        } else {
             passwordField.setText(new String(passwordGenerator.generatePassword(passwordGeneratorLength)));
+        }
     }
 
     /**
@@ -469,12 +478,14 @@ public class AppMainFrame extends ExLayeredFrame {
      */
     private void newEntryButtonPressed(ActionEvent eventInfo) {
         if (changedWithoutSaving) {
-            if (!promptSaveEntry())
+            if (!promptSaveEntry()) {
                 return;
-            else
+            } else {
                 changedWithoutSaving = false;
-        } else if(currentEntry != null)
+            }
+        } else if(currentEntry != null) {
             currentEntry.deselected(false);
+        }
         UIEntry newEntry = new UIEntry(this, new Entry("", "", null));
         newEntry.selected();
         displayEntry(newEntry);
@@ -496,8 +507,9 @@ public class AppMainFrame extends ExLayeredFrame {
      */
     private void configurePasswordLengthItemPressed(ActionEvent eventInfo) {
         int length = passwordLengthDialog.showAndWait(passwordGeneratorLength);
-        if(length >= 1)
+        if(length >= 1) {
             passwordGeneratorLength = length;
+        }
     }
 
     /**
@@ -505,8 +517,9 @@ public class AppMainFrame extends ExLayeredFrame {
      * @param b true if the components should be enabled, otherwise false
      */
     private void setFormEnabled(boolean b) {
-        for(Component c : toggledComponents)
+        for(Component c : toggledComponents) {
             c.setEnabled(b);
+        }
     }
 
     /**
@@ -563,8 +576,9 @@ public class AppMainFrame extends ExLayeredFrame {
     private boolean promptSaveEntry() {
         final int option = JOptionPane.showConfirmDialog(this, "Do you want to save changes" +
                 " to the current entry?");
-        if(option == JOptionPane.CANCEL_OPTION)
+        if(option == JOptionPane.CANCEL_OPTION) {
             return false;
+        }
         // Update the current entry if one was being edited
         if(currentEntry != null) {
             if (option == JOptionPane.YES_OPTION) {
@@ -574,8 +588,9 @@ public class AppMainFrame extends ExLayeredFrame {
                 e.setPassword(archiveManager, passwordField.getPassword());
                 currentEntry.updateLabels();
                 currentEntry.deselected(true);
-            } else
+            } else {
                 currentEntry.deselected(false);
+            }
         }
         // Notify the user either saved or chose not to
         return true;

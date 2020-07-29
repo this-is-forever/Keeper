@@ -60,10 +60,11 @@ public class Entry implements Comparable<Entry> {
      * @param password the char[] containing the new password
      */
     public void setPassword(PasswordArchiveManager manager, char[] password) {
-        if(password.length == 0)
+        if(password.length == 0) {
             passwordData = null;
-        else
+        } else {
             passwordData = manager.encryptPassword(password);
+        }
     }
 
     /**
@@ -81,8 +82,9 @@ public class Entry implements Comparable<Entry> {
      * entry does not have any password data
      */
     public String getPassword(PasswordArchiveManager manager) {
-        if(passwordData == null)
+        if(passwordData == null) {
             return "";
+        }
         return manager.decryptPassword(passwordData);
     }
 
@@ -95,8 +97,9 @@ public class Entry implements Comparable<Entry> {
     @Override
     public int compareTo(Entry e) {
         int comp = website.compareTo(e.getWebsite());
-        if(comp == 0)
+        if(comp == 0) {
             comp = username.compareTo(e.getUsername());
+        }
         return comp;
     }
 }

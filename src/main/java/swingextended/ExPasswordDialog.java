@@ -28,8 +28,9 @@ public class ExPasswordDialog extends JDialog implements ActionListener, WindowF
         super(owner);
         this.owner = owner;
         setTitle(title);
-        if(!owner.isVisible())
+        if(!owner.isVisible()) {
             setLocationByPlatform(true);
+        }
         create();
     }
 
@@ -59,8 +60,9 @@ public class ExPasswordDialog extends JDialog implements ActionListener, WindowF
         setVisible(true);
         // Return the result (flag is manipulated by another thread)
         char[] password = passwordField.getPassword();
-        if(password.length == 0 || !submitted)
+        if(password.length == 0 || !submitted) {
             return null;
+        }
         return password;
     }
 
@@ -81,12 +83,14 @@ public class ExPasswordDialog extends JDialog implements ActionListener, WindowF
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         // Did the user click the OK button or hit enter?
-        if(source == okButton || source == passwordField)
+        if(source == okButton || source == passwordField) {
             // Yes; set the submitted flag
             submitted = true;
-        if(source == cancelButton || source == okButton || source == passwordField)
+        }
+        if(source == cancelButton || source == okButton || source == passwordField) {
             // Hide the dialog and go back to the main application frame
             setVisible(false);
+        }
     }
 
     /**
@@ -96,8 +100,9 @@ public class ExPasswordDialog extends JDialog implements ActionListener, WindowF
      */
     @Override
     public void windowGainedFocus(WindowEvent e) {
-        if(owner != null)
+        if(owner != null) {
             owner.toFront();
+        }
     }
 
     @Override

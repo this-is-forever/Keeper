@@ -30,7 +30,7 @@ public class PasswordGenerator {
     // Contains flags that determine whether each of the above character sets should be enabled during generation
     private final boolean[] characterSetFlags;
 
-    // Psuedo random number generator used for generating password characters
+    // Pseudo-random number generator used for generating password characters
     private SecureRandom prng;
 
     public PasswordGenerator() {
@@ -58,8 +58,9 @@ public class PasswordGenerator {
      */
     public boolean anySelected() {
         boolean selected = false;
-        for(boolean flag : characterSetFlags)
+        for(boolean flag : characterSetFlags) {
             selected |= flag;
+        }
         return selected;
     }
 
@@ -134,8 +135,9 @@ public class PasswordGenerator {
         // Verify that the password contains at least one of each character set
         for(int i = 0; i < CHARACTER_SETS.length && unchangedIndexes.size() > 0; i++) {
             // Skip this character set if it isn't enabled
-            if(!characterSetFlags[i])
+            if(!characterSetFlags[i]) {
                 continue;
+            }
             char[] chars = CHARACTER_SETS[i].toCharArray();
             List charsetList = Arrays.asList(chars);
             // Does the password contain at least one of the character set?

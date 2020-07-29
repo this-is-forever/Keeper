@@ -40,8 +40,9 @@ public class ExLayer extends Box {
             leftGlue = true;
         }
         // TO-DO: fix this!
-        for(Component c : components)
+        for(Component c : components) {
             add(c);
+        }
         if((alignment & RIGHT_GLUE_MASK) > 0) {
             addWithoutSpacing(Box.createHorizontalGlue());
             rightGlue = true;
@@ -84,8 +85,9 @@ public class ExLayer extends Box {
     @Override
     public Component add(Component c) {
         int index = getComponentCount();
-        if(rightGlue)
+        if(rightGlue) {
             index--;
+        }
         if(notFirst) {
             super.add(Box.createHorizontalStrut(componentSpacing), index);
             return super.add(c, index + 1);

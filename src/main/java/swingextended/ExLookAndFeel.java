@@ -16,8 +16,9 @@ public class ExLookAndFeel {
      */
     public static boolean set() {
         // Only set the L&F once
-        if(lookAndFeelSet)
+        if(lookAndFeelSet) {
             return true;
+        }
         // Attempt to set the look and feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

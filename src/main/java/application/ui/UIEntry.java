@@ -76,10 +76,11 @@ public class UIEntry extends JPanel implements MouseListener {
 
         // Determine the double-click interval for the user's system, defaulting to .5 seconds if one isn't set
         Object clickIntervalObj = Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
-        if(clickIntervalObj instanceof Integer)
-            UIEntry.DOUBLE_CLICK_INTERVAL = (int)clickIntervalObj;
-        else
+        if(clickIntervalObj instanceof Integer) {
+            UIEntry.DOUBLE_CLICK_INTERVAL = (int) clickIntervalObj;
+        } else {
             UIEntry.DOUBLE_CLICK_INTERVAL = 500;
+        }
     }
 
     /**
@@ -139,19 +140,22 @@ public class UIEntry extends JPanel implements MouseListener {
      */
     public void updateLabels() {
         String website = entry.getWebsite();
-        if(website.length() > 18)
+        if(website.length() > 18) {
             websiteLabel.setText(website.substring(0, 15) + "...");
-        else
+        } else {
             websiteLabel.setText(website);
+        }
         String username = entry.getUsername();
-        if(username.length() > 18)
+        if(username.length() > 18) {
             usernameLabel.setText(username.substring(0, 15) + "...");
-        else
+        } else {
             usernameLabel.setText(username);
-        if(entry.getPasswordData() == null)
+        }
+        if(entry.getPasswordData() == null) {
             passwordLabel.setText(" ");
-        else
+        } else {
             passwordLabel.setText(ECHO_CHAR_STRING);
+        }
         // Resize the component and redraw it to reflect the changes
         validate();
     }
@@ -174,10 +178,11 @@ public class UIEntry extends JPanel implements MouseListener {
     public void deselected(boolean changesMade) {
         selected = false;
         changed = changesMade || changed;
-        if(changed)
+        if(changed) {
             setColors(CHANGED_FOREGROUND_COLOR, CHANGED_BACKGROUND_COLOR, CHANGED_BORDER);
-        else
+        } else {
             setColors(UNSELECTED_FOREGROUND_COLOR, UNSELECTED_BACKGROUND_COLOR, UNSELECTED_BORDER);
+        }
         validate();
     }
 
@@ -196,8 +201,9 @@ public class UIEntry extends JPanel implements MouseListener {
     @Override
     public void mouseReleased(MouseEvent eventInfo) {
         long time = eventInfo.getWhen();
-        if(time < doubleClickExpire && !selected)
+        if(time < doubleClickExpire && !selected) {
             parent.entryClicked(this);
+        }
         doubleClickExpire = time + DOUBLE_CLICK_INTERVAL;
     }
 

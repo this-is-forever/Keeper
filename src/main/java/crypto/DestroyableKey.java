@@ -69,8 +69,9 @@ public class DestroyableKey implements SecretKey {
      */
     @Override
     public byte[] getEncoded() {
-        if(destroyed)
+        if(destroyed) {
             throw new IllegalStateException("Key was previously destroyed!");
+        }
         return Arrays.copyOf(keyData, keyData.length);
     }
 
@@ -80,8 +81,9 @@ public class DestroyableKey implements SecretKey {
      */
     @Override
     public void destroy() {
-        if(destroyed)
+        if(destroyed) {
             throw new IllegalStateException("Key has already been destroyed");
+        }
         destroyed = true;
         Arrays.fill(keyData, (byte)0);
     }

@@ -79,9 +79,10 @@ public class PleaseWaitDialog extends JDialog implements WindowFocusListener {
     @Override
     public void setVisible(boolean visibility) {
         // Are we making the window visible and is the parent window visible?
-        if(visibility && parent.isVisible())
+        if(visibility && parent.isVisible()) {
             // Yes; reposition the dialog in front of the parent window
             setLocationRelativeTo(parent);
+        }
         // Make the window visible
         super.setVisible(visibility);
     }
@@ -93,12 +94,13 @@ public class PleaseWaitDialog extends JDialog implements WindowFocusListener {
      */
     public void showSelf(boolean opening) {
         // Was the opening flag set?
-        if(opening)
+        if(opening) {
             // Yes; display the opening message
             label.setText("Opening archive, please wait...");
-        else
+        } else {
             // No; display the saving message
             label.setText("Saving archive, please wait...");
+        }
         // Resize the window to fit the altered label text
         pack();
         // Show the dialog

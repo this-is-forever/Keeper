@@ -35,8 +35,9 @@ public class ResourceManager {
      * @return A {@link Map <String,  Icon >} object that maps icon names to Icon objects
      */
     public static Map<String, ImageIcon> loadIcons() {
-        if(icons != null)
+        if(icons != null) {
             return icons;
+        }
         icons = new HashMap<>();
         for(String s : APPLICATION_ICONS) {
             try {
@@ -55,8 +56,9 @@ public class ResourceManager {
      * used when creating {@link Font} objects.
      */
     public static void loadFonts() {
-        if(fontsLoaded)
+        if(fontsLoaded) {
             return;
+        }
         fontsLoaded = true;
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         for(String file : APPLICATION_FONTS) {

@@ -61,8 +61,9 @@ public class ConfigurationManager extends Properties {
      */
     public Boolean getBooleanProperty(String key) {
         String prop = getProperty(key);
-        if(prop == null)
+        if(prop == null) {
             return null;
+        }
         return Boolean.parseBoolean(prop);
     }
 
@@ -75,8 +76,9 @@ public class ConfigurationManager extends Properties {
      */
     public boolean getBooleanProperty(String key, boolean defaultValue) {
         Boolean b = getBooleanProperty(key);
-        if(b == null)
+        if(b == null) {
             return defaultValue;
+        }
         return b;
     }
 
@@ -88,8 +90,9 @@ public class ConfigurationManager extends Properties {
      */
     public Integer getIntProperty(String key) {
         String prop = getProperty(key);
-        if(prop == null)
+        if(prop == null) {
             return null;
+        }
         try {
             return Integer.parseInt(prop);
         } catch(NumberFormatException e) {
@@ -107,8 +110,9 @@ public class ConfigurationManager extends Properties {
      */
     public int getIntProperty(String key, int defaultValue) {
         Integer i = getIntProperty(key);
-        if(i == null)
+        if(i == null) {
             return defaultValue;
+        }
         return i;
     }
 

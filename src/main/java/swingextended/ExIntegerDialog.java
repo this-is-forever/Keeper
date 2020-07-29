@@ -35,8 +35,9 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
         setTitle(title);
-        if(!owner.isVisible())
+        if(!owner.isVisible()) {
             setLocationByPlatform(true);
+        }
         create(prompt);
     }
 
@@ -63,8 +64,9 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
         setVisible(true);
         // Return the result (flag is manipulated by another thread)
         String input = inputField.getText();
-        if(submitted)
+        if(submitted) {
             return Integer.parseInt(input);
+        }
         return -1;
     }
 
@@ -80,17 +82,19 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
             // Validate the input
             try {
                 int i = Integer.parseInt(inputField.getText());
-                if(i < lowerBound || i > upperBound)
+                if(i < lowerBound || i > upperBound) {
                     return;
+                }
             } catch(NumberFormatException e) {
                 return;
             }
             // Yes; set the submitted flag
             submitted = true;
         }
-        if(source == cancelButton || source == okButton || source == inputField)
+        if(source == cancelButton || source == okButton || source == inputField) {
             // Hide the dialog and go back to the main application frame
             setVisible(false);
+        }
     }
 
     /**
@@ -100,8 +104,9 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
      */
     @Override
     public void windowGainedFocus(WindowEvent eventInfo) {
-        if(owner != null)
+        if(owner != null) {
             owner.toFront();
+        }
     }
 
     /**
@@ -161,8 +166,9 @@ public class ExIntegerDialog extends JDialog implements ActionListener, WindowFo
     @Override
     public void keyTyped(KeyEvent eventInfo) {
         char input = eventInfo.getKeyChar();
-        if(input < '0' || input > '9')
+        if(input < '0' || input > '9') {
             eventInfo.consume();
+        }
     }
 
     // Remaining methods were required to implement the WindowFocusListener and KeyListener interfaces
