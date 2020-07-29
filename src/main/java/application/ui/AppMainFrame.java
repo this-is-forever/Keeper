@@ -114,6 +114,15 @@ public class AppMainFrame extends ExFrame {
     }
 
     /**
+     * Sets up the look and feel of various components used by the application
+     */
+    public static void setupLookAndFeel() {
+        UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+        FORM_FONT = defaults.getFont("TextField.font").deriveFont((float)16);
+        UIEntry.setupLookAndFeel();
+    }
+
+    /**
      * Method called on the Swing UI thread that creates the application's GUI and makes it visible. Most of the
      * app's functionality is defined here.
      */
@@ -289,14 +298,20 @@ public class AppMainFrame extends ExFrame {
         layerSize.width = 1000;
         layer.setMaximumSize(layerSize);
 
+        // Disable the form until the user selects an entry or creates a new one
         setFormEnabled(false);
+        // Resize to fit child components
         pack();
-
+        // Let the OS decide where to put the frame
         setLocationByPlatform(true);
+        // Make the window visible
         setVisible(true);
+        // Does the archive file exist?
         if(!archiveFile.exists()) {
+            // It doesn't, just create a new list of entries which we'll add to when the user starts making some
             entries = new ArrayList<>();
         } else {
+            // It does; show the wait dialog and begin opening the archive on a separate thread
             SwingUtilities.invokeLater(() ->
                     waitDialog.showSelf(PleaseWaitDialog.OPENING_MESSAGE));
             new Thread(() ->{
@@ -304,9 +319,12 @@ public class AppMainFrame extends ExFrame {
                 if(archive == null) {
                     JOptionPane.showMessageDialog(this, "Error: Unable to open archive!",
                             "Error", JOptionPane.ERROR_MESSAGE);
+                    System.exit(0);
                 }
+                // Sort the list by website and then by username if websites are the same
                 Collections.sort(archive);
                 SwingUtilities.invokeLater(() -> {
+                    // Add the entries on the Swing event thread and display them
                     entries = new ArrayList<>(archive.size());
                     for (Entry e : archive) {
                         UIEntry entry = new UIEntry(this, e);
@@ -314,17 +332,11 @@ public class AppMainFrame extends ExFrame {
                         entriesBox.add(entry, entriesBox.getComponentCount() - 1);
                     }
                     entryScrollPane.validate();
-                    //oldOpen();
+                    // Get rid of the wait dialog now that we're done
                     waitDialog.setVisible(false);
                 });
             }).start();
         }
-    }
-
-    public static void setupLookAndFeel() {
-        UIDefaults defaults = UIManager.getLookAndFeelDefaults();
-        FORM_FONT = defaults.getFont("TextField.font").deriveFont((float)16);
-        UIEntry.setupLookAndFeel();
     }
 
     /**
