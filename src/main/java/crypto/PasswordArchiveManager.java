@@ -45,7 +45,6 @@ public class PasswordArchiveManager {
      *                 saved
      * @param keyFile A reference to a {@link File} object, from which the key file will be read and decrypted. If the
      *                file does not exist, a new key and auth key will be created and saved to the file
-     * @throws InvalidKeyException if the password given fails to decrypt the given key file
      */
     public PasswordArchiveManager(char[] password, File keyFile) {
         crypto = new Cryptographer(password);
@@ -92,7 +91,7 @@ public class PasswordArchiveManager {
         // Encode the password using UTF-8, generating a byte[]
         byte[] passwordBytes = Encoding.encode(password);
         // Encrypt the password bytes
-        byte[] data = new byte[0];
+        byte[] data;
         try {
             data = crypto.encryptWithKeys(passwordBytes, entryKey, entryAuthKey);
             return data;
@@ -121,50 +120,6 @@ public class PasswordArchiveManager {
             return null;
         }
     }
-
-    /**
-     * Decrypts the given password data, authenticating in the process
-     * @param encrypted A byte[] containing the output of {@link PasswordArchiveManager#encryptPassword}
-     * @return a {@link String} containing the decrypted password if decryption and authentication were successful,
-     * otherwise null
-     *
-    public String decryptPasswordB(byte[] encrypted) {
-        // Wrap the data in a buffer so we may dismantle it into smaller arrays
-        ByteBuffer data = ByteBuffer.wrap(encrypted);
-        // Pull out the IV used to encrypt
-        byte[] iv = new byte[Crypto.IV_LENGTH];
-        data.get(iv);
-        // Pull out authentication data
-        short authDataLength = data.getShort();
-        assert authDataLength == Crypto.AUTHENTICATION_DATA_LENGTH : "Fatal Error: entry password authentication " +
-                "data is of invalid size! Tampering?";
-        byte[] authData = new byte[Crypto.AUTHENTICATION_DATA_LENGTH];
-        data.get(authData);
-        // Pull out the ciphertext
-        int ciphertextLength = data.getInt();
-        assert ciphertextLength == data.remaining() : "Fatal Error: entry ciphertext is of invalid size! Tampering?";
-        byte[] ciphertext = new byte[ciphertextLength];
-        data.get(ciphertext);
-
-        // Attempt to decrypt the password using the entry key and entry auth key
-        byte[] plaintext;
-        try {
-            plaintext = Crypto.decrypt(ciphertext, authData, iv, entryKey, entryAuthKey);
-        } catch (InvalidKeyException | AuthenticationException e) {
-            // Return null if authentication or decryption fail
-            e.printStackTrace();
-            return null;
-        }
-        // Decode the resulting bytes
-        String result = Encoding.decode(plaintext);
-        // Erase sensitive data
-        Crypto.erase(plaintext);
-        Crypto.erase(iv);
-        Crypto.erase(ciphertext);
-        Crypto.erase(authData);
-        // return the result
-        return result;
-    }*/
 
     /**
      * Loads all password entries from a given file. If authentication or decryption fail, the method returns null

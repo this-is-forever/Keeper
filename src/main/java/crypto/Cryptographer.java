@@ -346,7 +346,7 @@ public class Cryptographer {
     /**
      * Generates a hash to be used to authenticate data when decryption occurs
      * @throws NoSuchAlgorithmException If the hashing algorithm is unsupported by the user's JVM
-     * @throws InvalidKeyException If hashing failed because the key was invalid
+     * @throws java.security.InvalidKeyException If hashing failed because the key was invalid
      */
     private void generateAuthenticationHash() throws NoSuchAlgorithmException, java.security.InvalidKeyException {
         Mac mac = Mac.getInstance(AUTHENTICATION_ALGORITHM);

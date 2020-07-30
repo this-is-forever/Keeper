@@ -50,7 +50,7 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         // Load a font to make the tutorial text pretty
         ResourceManager.loadFonts();
         // Change the icon
-        setIconImage(((ImageIcon)ResourceManager.loadIcons().get("Padlock16")).getImage());
+        setIconImage(ResourceManager.loadIcons().get("Padlock16").getImage());
         // Initialize the file chooser dialog
         fileChooser = new JFileChooser();
         // Do nothing when the user attempts to close the window
