@@ -1,6 +1,6 @@
 package application.ui;
 
-import crypto.Crypto;
+import crypto.Cryptographer;
 import swingextended.ExLayer;
 
 import javax.swing.*;
@@ -193,7 +193,7 @@ public class InitialSetupDialog extends JDialog implements WindowListener {
         }
         // Ensure the user entered a password; if not, we have a problem - cancel form submission
         char[] password = passwordField.getPassword();
-        Crypto.erase(password);
+        Cryptographer.erase(password);
         if(password.length == 0) {
             JOptionPane.showMessageDialog(this, "You must enter a password!");
             return;

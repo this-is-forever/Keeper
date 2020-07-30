@@ -22,7 +22,7 @@ public class Encoding {
         ByteBuffer bb = ENCODER.encode(CharBuffer.wrap(c));
         byte[] b = new byte[bb.limit()];
         bb.get(b);
-        Crypto.erase(bb.array());
+        Cryptographer.erase(bb.array());
         return b;
     }
 

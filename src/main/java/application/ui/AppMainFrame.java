@@ -15,6 +15,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.security.GeneralSecurityException;
 import java.util.*;
 
 /**
@@ -133,26 +134,15 @@ public class AppMainFrame extends ExLayeredFrame {
             if(password == null) {
                 System.exit(0);
             }
-            try {
-                archiveManager = new PasswordArchiveManager(password, keyFile);
-            } catch(InvalidPasswordException e) {
-                JOptionPane.showMessageDialog(this, "Incorrect password!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                System.exit(0);
-            }
+            archiveManager = new PasswordArchiveManager(password, keyFile);
         } else {
             // Otherwise, show the initial setup dialog and wait for the user to finish
             if(!initialSetupDialog.showAndWait()) {
                 System.exit(0);
             }
             archiveFile = new File(initialSetupDialog.getArchivePath());
-            try {
-                archiveManager = new PasswordArchiveManager(initialSetupDialog.getPassword(), keyFile);
-            } catch (InvalidPasswordException e) {
-                JOptionPane.showMessageDialog(this, "Incorrect password!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                System.exit(0);
-            }
+            archiveManager = new PasswordArchiveManager(initialSetupDialog.getPassword(), keyFile);
+
             // If the key file doesn't exist yet the archive file does, we have a problem - they key file is required
             // in order to access the archive's passwords
             if(!keyFile.exists() && archiveFile.exists()) {
@@ -310,26 +300,69 @@ public class AppMainFrame extends ExLayeredFrame {
             SwingUtilities.invokeLater(() ->
                     waitDialog.showSelf(PleaseWaitDialog.OPENING_MESSAGE));
             new Thread(() ->{
-                ArrayList<Entry> archive = archiveManager.openDatabase(archiveFile);
-                if(archive == null) {
-                    JOptionPane.showMessageDialog(this, "Error: Unable to open archive!",
+                try {
+                    archiveManager.populateEntryKeys();
+                } catch (DataFormatException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Your key file appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
+                    System.exit(0);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Unable to initiate the cryptographic library", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Authentication of your key file failed.. was it tampered with?",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                } catch(InvalidKeyException e) {
+                    JOptionPane.showMessageDialog(this, "Incorrect password!",
                             "Error", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
                 }
-                // Sort the list by website and then by username if websites are the same
-                Collections.sort(archive);
-                SwingUtilities.invokeLater(() -> {
-                    // Add the entries on the Swing event thread and display them
-                    entries = new ArrayList<>(archive.size());
-                    for (Entry e : archive) {
-                        UIEntry entry = new UIEntry(this, e);
-                        entries.add(entry);
-                        entriesBox.add(entry, entriesBox.getComponentCount() - 1);
+                try {
+                    final ArrayList<Entry> archive = archiveManager.openDatabase(archiveFile);
+                    if(archive == null) {
+                        JOptionPane.showMessageDialog(this, "Error: Unable to open archive!",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        System.exit(0);
                     }
-                    entryScrollPane.validate();
-                    // Get rid of the wait dialog now that we're done
-                    waitDialog.setVisible(false);
-                });
+                    // Sort the list by website and then by username if websites are the same
+                    Collections.sort(archive);
+                    SwingUtilities.invokeLater(() -> {
+                        // Add the entries on the Swing event thread and display them
+                        entries = new ArrayList<>(archive.size());
+                        for (Entry e : archive) {
+                            UIEntry entry = new UIEntry(this, e);
+                            entries.add(entry);
+                            entriesBox.add(entry, entriesBox.getComponentCount() - 1);
+                        }
+                        entryScrollPane.validate();
+                        // Get rid of the wait dialog now that we're done
+                        waitDialog.setVisible(false);
+                    });
+                } catch (DataFormatException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Your archive appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
+                    System.exit(0);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Unable to initiate the cryptographic library", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Authentication of your archive file failed.. was it tampered with?",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                } catch(InvalidKeyException e) {
+                    JOptionPane.showMessageDialog(this, "Incorrect password!",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    System.exit(0);
+                }
             }).start();
         }
     }
