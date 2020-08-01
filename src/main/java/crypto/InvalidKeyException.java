@@ -1,7 +1,7 @@
 package crypto;
 
 /**
- * An exception thrown by {@link Cryptographer} when an invalid password is given during decryption
+ * An exception thrown by {@link PasswordBasedCryptographer} when an invalid password is given during decryption
  */
 public class InvalidKeyException extends Exception {
 

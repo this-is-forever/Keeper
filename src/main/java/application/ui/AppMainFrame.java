@@ -307,7 +307,7 @@ public class AppMainFrame extends ExLayeredFrame {
                     JOptionPane.showMessageDialog(this,
                             "Your key file appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
-                } catch (GeneralSecurityException e) {
+                } catch (UnsupportedSystemException e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(this,
                             "Unable to initiate the cryptographic library", "Error",
@@ -348,7 +348,7 @@ public class AppMainFrame extends ExLayeredFrame {
                     JOptionPane.showMessageDialog(this,
                             "Your archive appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
-                } catch (GeneralSecurityException e) {
+                } catch (UnsupportedSystemException e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(this,
                             "Unable to initiate the cryptographic library", "Error",
@@ -422,8 +422,11 @@ public class AppMainFrame extends ExLayeredFrame {
                 configuration.store();
 
                 copyToClipboard("");
+                try {
+                    archiveManager.closeDatabase(archiveFile, entries);
+                } catch(Exception e) {
 
-                archiveManager.closeDatabase(archiveFile, entries);
+                }
                 passwordDialog.dispose();
                 waitDialog.dispose();
                 passwordLengthDialog.dispose();

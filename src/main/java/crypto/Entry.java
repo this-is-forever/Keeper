@@ -63,7 +63,11 @@ public class Entry implements Comparable<Entry> {
         if(password.length == 0) {
             passwordData = null;
         } else {
-            passwordData = manager.encryptPassword(password);
+            try {
+                passwordData = manager.encryptPassword(password);
+            } catch(Exception e) {
+
+            }
         }
     }
 
@@ -85,7 +89,11 @@ public class Entry implements Comparable<Entry> {
         if(passwordData == null) {
             return "";
         }
-        return manager.decryptPassword(passwordData);
+        try {
+            return manager.decryptPassword(passwordData);
+        } catch(InvalidKeyException | UnsupportedSystemException | DataFormatException | AuthenticationException e) {
+            return null;
+        }
     }
 
     /**

@@ -18,7 +18,8 @@ public class PasswordArchiveManager {
     // References the file to which the key file will be saved
     private final File entryKeyFile;
 
-    private Cryptographer crypto;
+    private PasswordBasedCryptographer archiveCryptographer;
+    private PremadeKeyCryptographer entryCryptographer;
 
     private static byte[] readAll(File f) {
         try(FileInputStream in = new FileInputStream(f)) {
@@ -37,8 +38,6 @@ public class PasswordArchiveManager {
         return true;
     }
 
-    private DestroyableKey entryKey, entryAuthKey;
-
     /**
      * Instantiates the archive manager with a given password and key file location
      * @param password A char[] containing the password to the database, which will be erased when the database is
@@ -47,30 +46,31 @@ public class PasswordArchiveManager {
      *                file does not exist, a new key and auth key will be created and saved to the file
      */
     public PasswordArchiveManager(char[] password, File keyFile) {
-        crypto = new Cryptographer(password);
+        archiveCryptographer = new PasswordBasedCryptographer(password);
         entryKeyFile = keyFile;
     }
 
     public void populateEntryKeys()
-            throws InvalidKeyException, DataFormatException, GeneralSecurityException, AuthenticationException {
+            throws UnsupportedSystemException, InvalidKeyException, DataFormatException, AuthenticationException {
         // Decrypt the key file and obtain the keys used for password encrypt/decrypt
         // If the key file doesn't exist, create new keys which will be saved later
         byte[] keyBytes;
         if(!entryKeyFile.exists())
-            keyBytes = Cryptographer.randomBytes(PASSWORD_KEY_LENGTH * 2);
+            keyBytes = CryptoUtil.randomBytes(PASSWORD_KEY_LENGTH * 2);
         else {
             byte[] data = readAll(entryKeyFile);
-            keyBytes = crypto.decrypt(data);
-            Cryptographer.erase(data);
+            keyBytes = archiveCryptographer.decrypt(data);
+            CryptoUtil.erase(data);
         }
         // Decryption failed; throw exception
         if(keyBytes == null)
             throw new InvalidKeyException("Password was incorrect");
         // Create handles to the keys which can be used by AES
-        entryKey = new DestroyableKey(keyBytes, 0, PASSWORD_KEY_LENGTH);
-        entryAuthKey = new DestroyableKey(keyBytes, PASSWORD_KEY_LENGTH, PASSWORD_KEY_LENGTH);
+        DestroyableKey entryKey = new DestroyableKey(keyBytes, 0, PASSWORD_KEY_LENGTH);
+        DestroyableKey entryAuthKey = new DestroyableKey(keyBytes, PASSWORD_KEY_LENGTH, PASSWORD_KEY_LENGTH);
+        entryCryptographer = new PremadeKeyCryptographer(entryKey, entryAuthKey);
         // Erase the array for security
-        Cryptographer.erase(keyBytes);
+        CryptoUtil.erase(keyBytes);
     }
 
     /**
@@ -78,7 +78,7 @@ public class PasswordArchiveManager {
      * @param password The new password for the database
      */
     public void changePassword(char[] password) {
-        crypto.changePassword(password);
+        archiveCryptographer.changePassword(password);
     }
 
     /**
@@ -87,18 +87,16 @@ public class PasswordArchiveManager {
      * @return A byte[] containing data required during authentication and decryption, or null if encryption somehow
      * failed
      */
-    public byte[] encryptPassword(char[] password) {
+    public byte[] encryptPassword(char[] password) throws UnsupportedSystemException, InvalidKeyException {
         // Encode the password using UTF-8, generating a byte[]
         byte[] passwordBytes = Encoding.encode(password);
         // Encrypt the password bytes
         byte[] data;
         try {
-            data = crypto.encryptWithKeys(passwordBytes, entryKey, entryAuthKey);
+            data = entryCryptographer.encrypt(passwordBytes);
             return data;
-        } catch (GeneralSecurityException e) {
-            return null;
         } finally {
-            Cryptographer.erase(passwordBytes);
+            CryptoUtil.erase(passwordBytes);
         }
     }
 
@@ -108,17 +106,12 @@ public class PasswordArchiveManager {
      * @return a {@link String} containing the decrypted password if decryption and authentication were successful,
      * otherwise null
      */
-    public String decryptPassword(byte[] encryptedData) {
-        try {
-            byte[] plaintext = crypto.decryptWithKeys(encryptedData, entryKey, entryAuthKey);
-            String result = Encoding.decode(plaintext);
-            Cryptographer.erase(plaintext);
-            return result;
-        } catch (DataFormatException |
-                InvalidKeyException | GeneralSecurityException | AuthenticationException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public String decryptPassword(byte[] encryptedData) throws UnsupportedSystemException,
+            AuthenticationException, InvalidKeyException, DataFormatException {
+        byte[] plaintext = entryCryptographer.decrypt(encryptedData);
+        String result = Encoding.decode(plaintext);
+        CryptoUtil.erase(plaintext);
+        return result;
     }
 
     /**
@@ -128,10 +121,10 @@ public class PasswordArchiveManager {
      * decryption were unsuccessful.
      */
     public ArrayList<Entry> openDatabase(File f)
-            throws GeneralSecurityException, InvalidKeyException, DataFormatException, AuthenticationException {
+            throws InvalidKeyException, DataFormatException, AuthenticationException, UnsupportedSystemException {
         // Begin by opening and decrypting the file
         byte[] archiveData = readAll(f);
-        byte[] plaintext = crypto.decrypt(archiveData);
+        byte[] plaintext = archiveCryptographer.decrypt(archiveData);
 
         if(plaintext == null)
             return null;
@@ -153,7 +146,7 @@ public class PasswordArchiveManager {
                 data = new byte[size];
                 dataReader.get(data);
                 website = Encoding.decode(data);
-                Cryptographer.erase(data);
+                CryptoUtil.erase(data);
             } else
                 website = "";
 
@@ -168,7 +161,7 @@ public class PasswordArchiveManager {
                 data = new byte[size];
                 dataReader.get(data);
                 username = Encoding.decode(data);
-                Cryptographer.erase(data);
+                CryptoUtil.erase(data);
             } else
                 username = "";
 
@@ -186,7 +179,7 @@ public class PasswordArchiveManager {
             entries.add(new Entry(website, username, data));
         }
         // Erase the plaintext data
-        Cryptographer.erase(plaintext);
+        CryptoUtil.erase(plaintext);
         // Return the list of entries
         return entries;
     }
@@ -198,16 +191,21 @@ public class PasswordArchiveManager {
      * @param database An {@link ArrayList} of {@link UIEntry} objects containing entries to encrypt and save
      * @return true on success, otherwise false
      */
-    public boolean closeDatabase(File f, ArrayList<UIEntry> database) {
+    public boolean closeDatabase(File f, ArrayList<UIEntry> database) throws UnsupportedSystemException {
         // Encrypt the password encryption/decryption key and auth key and save them to the entryKeyFile
         ByteBuffer buffer = ByteBuffer.allocate(PASSWORD_KEY_LENGTH * 2);
-        buffer.put(entryKey.getEncoded());
-        buffer.put(entryAuthKey.getEncoded());
+        byte[] keyBytes = entryCryptographer.getKey().getEncoded();
+        buffer.put(keyBytes);
+        CryptoUtil.erase(keyBytes);
+        keyBytes = entryCryptographer.getAuthKey().getEncoded();
+        buffer.put(keyBytes);
+        CryptoUtil.erase(keyBytes);
+
         byte[] array = buffer.array();
-        byte[] encryptedData = crypto.encrypt(array);
+        byte[] encryptedData = archiveCryptographer.encrypt(array);
         writeAll(encryptedData, entryKeyFile);
-        Cryptographer.erase(array);
-        Cryptographer.erase(encryptedData);
+        CryptoUtil.erase(array);
+        CryptoUtil.erase(encryptedData);
         // Convert all of the entry data to bytes and write them to a byte stream
         ErasableByteStream byteStream = new ErasableByteStream(16384);
         byte[] sizeBytes = new byte[2];
@@ -223,7 +221,7 @@ public class PasswordArchiveManager {
             byteStream.writeBytes(sizeBytes);
             if(size > 0) {
                 byteStream.writeBytes(stringData);
-                Cryptographer.erase(stringData);
+                CryptoUtil.erase(stringData);
             }
             String username = e.getUsername();
             stringData = Encoding.encode(username);
@@ -233,7 +231,7 @@ public class PasswordArchiveManager {
             byteStream.writeBytes(sizeBytes);
             if(size > 0) {
                 byteStream.writeBytes(stringData);
-                Cryptographer.erase(stringData);
+                CryptoUtil.erase(stringData);
             }
             byte[] passwordData = e.getPasswordData();
             if(passwordData == null || passwordData.length == 0) {
@@ -243,7 +241,7 @@ public class PasswordArchiveManager {
                 sizeBuffer.putShort((short) passwordData.length);
                 byteStream.writeBytes(sizeBytes);
                 byteStream.writeBytes(passwordData);
-                Cryptographer.erase(passwordData);
+                CryptoUtil.erase(passwordData);
             }
             sizeBuffer.position(0);
         }
@@ -251,11 +249,11 @@ public class PasswordArchiveManager {
         byteStream.erase();
 
         // Encrypt the data using the given keys and salts
-        byte[] ciphertext = crypto.encrypt(plaintextData);
+        byte[] ciphertext = archiveCryptographer.encrypt(plaintextData);
 
         cleanup();
-        Cryptographer.erase(plaintextData);
-        Cryptographer.erase(sizeBytes);
+        CryptoUtil.erase(plaintextData);
+        CryptoUtil.erase(sizeBytes);
         // Were we successful? If not, return false
         if(ciphertext == null)
             return false;
@@ -266,14 +264,13 @@ public class PasswordArchiveManager {
             return false;
         }
         // We were, return true
-        Cryptographer.erase(ciphertext);
+        CryptoUtil.erase(ciphertext);
         return true;
     }
 
     private void cleanup() {
-        entryKey.destroy();
-        entryAuthKey.destroy();
-        crypto.destroy();
+        entryCryptographer.destroy();
+        archiveCryptographer.destroy();
     }
 
 }
