@@ -2,7 +2,7 @@
 
 Keeper is a password archive that uses double encryption to keep your passwords safe.
 
-Just want to try the app out without downloading and compiling the source? You can download a precompiled JAR of the program [here](https://github.com/this-is-forever/Keeper/raw/master/keeper-1.0-jar-with-dependencies.jar). A minimum of JRE 11 is required to run the app.
+Just want to try the app out without downloading and compiling the source? You can download a precompiled JAR of the program [here](https://github.com/this-is-forever/Keeper/releases/download/1.0/keeper-1.0-jar-with-dependencies.jar). A minimum of JRE 11 is required to run the app.
 
 To compile the program yourself, download the project using git and use Maven to build the program using the following command:
 
