@@ -12,9 +12,9 @@ public class Entry implements Comparable<Entry> {
 
     /**
      * Constructs a new {@link Entry} object with given website, username and encrypted password data
-     * @param website
-     * @param username
-     * @param passwordData
+     * @param website The entry's website
+     * @param username The entry's username
+     * @param passwordData Encrypted password data for this entry
      */
     public Entry(String website, String username, byte[] passwordData) {
         this.website = website;
@@ -65,8 +65,9 @@ public class Entry implements Comparable<Entry> {
         } else {
             try {
                 passwordData = manager.encryptPassword(password);
-            } catch(Exception e) {
-
+            } catch(UnsupportedSystemException | InvalidKeyException e) {
+                throw new RuntimeException("Unable to encrypt password data; your system does not support " +
+                        "the given encryption algorithm");
             }
         }
     }
@@ -85,15 +86,12 @@ public class Entry implements Comparable<Entry> {
      * @return a {@link String} object containing the decrypted password, or an empty {@link String} if this
      * entry does not have any password data
      */
-    public String getPassword(PasswordArchiveManager manager) {
+    public String getPassword(PasswordArchiveManager manager) throws UnsupportedSystemException, InvalidKeyException,
+            DataFormatException, AuthenticationException {
         if(passwordData == null) {
             return "";
         }
-        try {
-            return manager.decryptPassword(passwordData);
-        } catch(InvalidKeyException | UnsupportedSystemException | DataFormatException | AuthenticationException e) {
-            return null;
-        }
+        return manager.decryptPassword(passwordData);
     }
 
     /**
@@ -104,9 +102,9 @@ public class Entry implements Comparable<Entry> {
      */
     @Override
     public int compareTo(Entry e) {
-        int comp = website.compareTo(e.getWebsite());
+        int comp = website.toLowerCase().compareTo(e.getWebsite().toLowerCase());
         if(comp == 0) {
-            comp = username.compareTo(e.getUsername());
+            comp = username.toLowerCase().compareTo(e.getUsername().toLowerCase());
         }
         return comp;
     }

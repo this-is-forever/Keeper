@@ -15,7 +15,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.security.GeneralSecurityException;
 import java.util.*;
 
 /**
@@ -424,8 +423,11 @@ public class AppMainFrame extends ExLayeredFrame {
                 copyToClipboard("");
                 try {
                     archiveManager.closeDatabase(archiveFile, entries);
-                } catch(Exception e) {
-
+                } catch (UnsupportedSystemException e) {
+                    JOptionPane.showMessageDialog(this,
+                            "Fatal Error: Unable to initiate AES with CBC; algorithm unsupported by " +
+                                    "your system",
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 passwordDialog.dispose();
                 waitDialog.dispose();
@@ -503,7 +505,26 @@ public class AppMainFrame extends ExLayeredFrame {
         Entry entry = currentEntry.getEntry();
         websiteField.setText(entry.getWebsite());
         usernameField.setText(entry.getUsername());
-        passwordField.setText(entry.getPassword(archiveManager));
+        try {
+            passwordField.setText(entry.getPassword(archiveManager));
+        } catch (InvalidKeyException e) {
+            JOptionPane.showMessageDialog(this,
+                "The key in keeper.key was unable to encrypt the given entry's password. Ensure you are " +
+                        "using the correct keeper.key file.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (AuthenticationException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Authentication of this entry's password data failed.. was it tampered with?",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (UnsupportedSystemException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Fatal Error: Unable to initiate AES with CBC; algorithm unsupported by your system.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (DataFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Data misalignment within this entry; was data tampered with?",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
         changedWithoutSaving = false;
     }
 
@@ -596,7 +617,26 @@ public class AppMainFrame extends ExLayeredFrame {
         Entry entry = uiEntry.getEntry();
         websiteField.setText(entry.getWebsite());
         usernameField.setText(entry.getUsername());
-        passwordField.setText(entry.getPassword(archiveManager));
+        try {
+            passwordField.setText(entry.getPassword(archiveManager));
+        } catch (InvalidKeyException e) {
+            JOptionPane.showMessageDialog(this,
+                    "The key in keeper.key was unable to encrypt the given entry's password. Ensure you are " +
+                            "using the correct keeper.key file.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (AuthenticationException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Authentication of this entry's password data failed.. was it tampered with?",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (UnsupportedSystemException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Fatal Error: Unable to initiate AES with CBC; algorithm unsupported by your system.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (DataFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Data misalignment within this entry; was data tampered with?",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
         currentEntry = uiEntry;
         currentEntry.selected();
 

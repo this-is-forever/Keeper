@@ -80,7 +80,7 @@ public class CryptoUtil {
 
     /**
      * Generates an array of random bytes to be used for initialization vectors, with length set by
-     * {@link PasswordBasedCryptographer#IV_LENGTH}
+     * {@link CryptoUtil#IV_LENGTH}
      * @return an array of random bytes with the predefined size
      */
     public static byte[] generateIV() {

@@ -9,6 +9,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+/**
+ * Allows the encryption and decryption of data with {@link DestroyableKey}s. The keys will persist in memory
+ * until the {@link PremadeKeyCryptographer#destroy} method is called.
+ */
 public class PremadeKeyCryptographer implements Cryptographer{
 
     private DestroyableKey key, authKey;
@@ -27,7 +31,8 @@ public class PremadeKeyCryptographer implements Cryptographer{
      * Encrypts data with the given keys
      * @param data The plaintext data to encryption
      * @return the resulting packed encryption data, including IV, authentication data and ciphertext
-     * @throws GeneralSecurityException If initializing encryption failed
+     * @throws UnsupportedSystemException If the user's system does not support the encryption algorithm
+     * @throws InvalidKeyException If the given key was unsupported by the algorithm
      */
     @Override
     public byte[] encrypt(byte[] data) throws UnsupportedSystemException, InvalidKeyException {
@@ -49,7 +54,7 @@ public class PremadeKeyCryptographer implements Cryptographer{
      * @return the resulting plaintext data
      * @throws DataFormatException If the data is misaligned (possible tampering or data corruption)
      * @throws AuthenticationException If the data couldn't be authenticated (possible tampering or data corruption)
-     * @throws GeneralSecurityException If initiating decryption failed (system does not support the algorithm)
+     * @throws UnsupportedSystemException If initiating decryption failed (system does not support the algorithm)
      * @throws InvalidKeyException If the key given failed to decrypt the data
      */
     public byte[] decrypt(byte[] data)
@@ -67,6 +72,9 @@ public class PremadeKeyCryptographer implements Cryptographer{
         }
     }
 
+    /**
+     * Destroys this object's keys, erasing their and freeing allocated memory
+     */
     @Override
     public void destroy() {
         key.destroy();
@@ -74,18 +82,35 @@ public class PremadeKeyCryptographer implements Cryptographer{
         key = authKey = null;
     }
 
+    /**
+     * Gets a reference to this object's key used for encryption and decryption
+     * @return A reference to this object's key, as a {@link DestroyableKey}
+     */
     public DestroyableKey getKey() {
         return key;
     }
 
-    public DestroyableKey getAuthKey() {
+    /**
+     * Gets a reference to this object's key used for authenticating encrypted data
+     * @return A reference to this object's authentication key, as a {@link DestroyableKey}
+     */
+    public DestroyableKey getAuthenticationKey() {
         return authKey;
     }
 
+    /**
+     * Initializes the Initialization Vector needed for encryption;
+     * fills {@link PremadeKeyCryptographer#iv} with random bytes.
+     */
     private void initEncryption() {
         iv = CryptoUtil.generateIV();
     }
 
+    /**
+     * Encrypts the data in {@link PremadeKeyCryptographer#plaintext},
+     * storing it in {@link PremadeKeyCryptographer#ciphertext}
+     * @throws UnsupportedSystemException If the encryption algorithm is unsupported by the user's system
+     */
     private void encrypt() throws UnsupportedSystemException {
         try {
             Cipher c = Cipher.getInstance(CryptoUtil.ALGORITHM_MODE_PADDING);
@@ -98,6 +123,11 @@ public class PremadeKeyCryptographer implements Cryptographer{
         }
     }
 
+    /**
+     * Decrypts data in {@link PremadeKeyCryptographer#ciphertext}, storing it in
+     * {@link PremadeKeyCryptographer#plaintext}.
+     * @throws InvalidKeyException If the given key was unable to decrypt the data
+     */
     private void decrypt() throws InvalidKeyException {
         try {
             Cipher c = Cipher.getInstance(CryptoUtil.ALGORITHM_MODE_PADDING);
@@ -110,6 +140,12 @@ public class PremadeKeyCryptographer implements Cryptographer{
         }
     }
 
+    /**
+     * Hashes the value of {@link PremadeKeyCryptographer#ciphertext} using the authentication key,
+     * storing the hash in {@link PremadeKeyCryptographer#authHash}.
+     * @throws UnsupportedSystemException If the user's system does not support the hashing algorithm
+     * @throws InvalidKeyException If the given key is unsupported by the hashing algorithm
+     */
     private void generateAuthenticationHash() throws UnsupportedSystemException, InvalidKeyException {
         try {
             Mac mac = Mac.getInstance(CryptoUtil.AUTHENTICATION_ALGORITHM);
@@ -125,6 +161,14 @@ public class PremadeKeyCryptographer implements Cryptographer{
         }
     }
 
+    /**
+     * Hashes the data in {@link PremadeKeyCryptographer#ciphertext} and then compares it to the data in
+     * {@link PremadeKeyCryptographer#authHash}. If the hashes match, returns true, otherwise false.
+     * Used to ensure the ciphertext wasn't tampered with
+     * @return true if authentication was successful, otherwise false
+     * @throws UnsupportedSystemException If the hashing algorithm is not supported by the user's system
+     * @throws InvalidKeyException If the given key was not compatible with the hashing algorithm
+     */
     public boolean authenticate() throws UnsupportedSystemException, InvalidKeyException {
         try {
             Mac mac = Mac.getInstance(CryptoUtil.AUTHENTICATION_ALGORITHM);
@@ -149,9 +193,9 @@ public class PremadeKeyCryptographer implements Cryptographer{
      */
     private void packData() {
         ByteBuffer buffer = ByteBuffer.allocate(iv.length + authHash.length + ciphertext.length +
-                Short.BYTES + Integer.BYTES);
+                Byte.BYTES + Integer.BYTES);
         buffer.put(iv);
-        buffer.putShort((short) authHash.length);
+        buffer.put((byte) authHash.length);
         buffer.put(authHash);
         buffer.putInt(ciphertext.length);
         buffer.put(ciphertext);
@@ -168,7 +212,7 @@ public class PremadeKeyCryptographer implements Cryptographer{
         ByteBuffer buffer = ByteBuffer.wrap(packedData);
         buffer.get(iv);
 
-        short authLength = buffer.getShort();
+        byte authLength = buffer.get();
         if(authLength != CryptoUtil.AUTHENTICATION_DATA_LENGTH) {
             System.out.println(authLength);
             throw new DataFormatException("Authentication hash was of incorrect size");
@@ -187,6 +231,10 @@ public class PremadeKeyCryptographer implements Cryptographer{
         buffer.get(ciphertext);
     }
 
+    /**
+     * Erases underlying array data after encryption has finished and allows the JVM do garbage collect the
+     * allocated memory
+     */
     private void cleanup() {
         CryptoUtil.erase(plaintext);
         CryptoUtil.erase(ciphertext);

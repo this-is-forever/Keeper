@@ -4,7 +4,6 @@ import application.ui.UIEntry;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 
 /**
@@ -197,7 +196,7 @@ public class PasswordArchiveManager {
         byte[] keyBytes = entryCryptographer.getKey().getEncoded();
         buffer.put(keyBytes);
         CryptoUtil.erase(keyBytes);
-        keyBytes = entryCryptographer.getAuthKey().getEncoded();
+        keyBytes = entryCryptographer.getAuthenticationKey().getEncoded();
         buffer.put(keyBytes);
         CryptoUtil.erase(keyBytes);
 
