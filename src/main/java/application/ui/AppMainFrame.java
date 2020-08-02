@@ -294,6 +294,28 @@ public class AppMainFrame extends ExLayeredFrame {
         if(!archiveFile.exists()) {
             // It doesn't, just create a new list of entries which we'll add to when the user starts making some
             entries = new ArrayList<>();
+            try {
+                archiveManager.populateEntryKeys();
+            } catch (DataFormatException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Your key file appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            } catch (UnsupportedSystemException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Unable to initiate the cryptographic library", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (AuthenticationException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Authentication of your key file failed.. was it tampered with?",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            } catch(InvalidKeyException e) {
+                JOptionPane.showMessageDialog(this, "Incorrect password!",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            }
         } else {
             // It does; show the wait dialog and begin opening the archive on a separate thread
             SwingUtilities.invokeLater(() ->
