@@ -6,7 +6,7 @@
 
     <groupId>forever.this.is</groupId>
     <artifactId>keeper</artifactId>
-    <version>1.0</version>
+    <version>1.01</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
