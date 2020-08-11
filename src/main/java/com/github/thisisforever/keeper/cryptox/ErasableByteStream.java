@@ -1,4 +1,4 @@
-package crypto;
+package com.github.thisisforever.keeper.cryptox;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package application.ui;
+package com.github.thisisforever.keeper.application.ui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

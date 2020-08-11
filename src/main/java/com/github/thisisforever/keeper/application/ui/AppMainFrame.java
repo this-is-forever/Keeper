@@ -1,10 +1,12 @@
-package application.ui;
+package com.github.thisisforever.keeper.application.ui;
 
-import application.ConfigurationManager;
-import application.Main;
+import com.github.thisisforever.keeper.application.ConfigurationManager;
+import com.github.thisisforever.keeper.application.Main;
 import com.github.thisisforever.crypto.CryptographicFailureException;
-import crypto.*;
-import swingextended.*;
+import com.github.thisisforever.keeper.cryptox.Entry;
+import com.github.thisisforever.keeper.cryptox.PasswordArchiveManager;
+import com.github.thisisforever.keeper.cryptox.PasswordGenerator;
+import com.github.thisisforever.keeper.swingx.*;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;

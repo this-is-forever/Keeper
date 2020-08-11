@@ -1,4 +1,4 @@
-package swingextended;
+package com.github.thisisforever.keeper.swingx;
 
 import javax.swing.*;
 

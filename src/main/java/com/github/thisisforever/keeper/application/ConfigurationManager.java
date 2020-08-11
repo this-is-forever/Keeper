@@ -1,4 +1,4 @@
-package application;
+package com.github.thisisforever.keeper.application;
 
 import java.io.File;
 import java.io.FileInputStream;

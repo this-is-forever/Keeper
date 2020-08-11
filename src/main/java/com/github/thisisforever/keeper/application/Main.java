@@ -1,6 +1,6 @@
-package application;
+package com.github.thisisforever.keeper.application;
 
-import application.ui.AppMainFrame;
+import com.github.thisisforever.keeper.application.ui.AppMainFrame;
 
 import javax.swing.*;
 

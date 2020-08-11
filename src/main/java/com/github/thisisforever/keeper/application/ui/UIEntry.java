@@ -1,6 +1,6 @@
-package application.ui;
+package com.github.thisisforever.keeper.application.ui;
 
-import crypto.Entry;
+import com.github.thisisforever.keeper.cryptox.Entry;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

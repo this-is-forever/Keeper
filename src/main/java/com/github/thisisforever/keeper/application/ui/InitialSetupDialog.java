@@ -1,7 +1,7 @@
-package application.ui;
+package com.github.thisisforever.keeper.application.ui;
 
 import com.github.thisisforever.crypto.Utility;
-import swingextended.ExLayer;
+import com.github.thisisforever.keeper.swingx.ExLayer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

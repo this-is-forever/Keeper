@@ -1,4 +1,4 @@
-package application.ui;
+package com.github.thisisforever.keeper.application.ui;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

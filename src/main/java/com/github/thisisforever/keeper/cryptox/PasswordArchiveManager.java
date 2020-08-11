@@ -1,6 +1,6 @@
-package crypto;
+package com.github.thisisforever.keeper.cryptox;
 
-import application.ui.UIEntry;
+import com.github.thisisforever.keeper.application.ui.UIEntry;
 import com.github.thisisforever.crypto.*;
 
 import java.io.*;

@@ -1,4 +1,4 @@
-package crypto;
+package com.github.thisisforever.keeper.cryptox;
 
 import com.github.thisisforever.crypto.CryptographicFailureException;
 
