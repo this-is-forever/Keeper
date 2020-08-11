@@ -14,7 +14,7 @@ A minimum of JDK 11 is required to compile the project.
 
 # What is double encryption?
 
-Keeper uses a two-pronged approach to keeping your passwords safe. As you fill your archive with passwords, they are encrypted the moment you stop editing them using a randomized 64-byte key. This key is meant to be kept private and will be saved to the same directory that you keep the Keeper.jar file in.
+Keeper uses a two-pronged approach to keeping your passwords safe. As you fill your archive with passwords, they are encrypted the moment you stop editing them using a randomized 32-byte key. This key is meant to be kept private and will be saved to the same directory that you keep the Keeper.jar file in.
 
 When you close Keeper, the entirety of your password archive is encrypted with your master password, thus encrypting your passwords twice. Your key file is also encrypted (using a different salt) with your master password, preventing the key from being accessed by anyone without your master password.
 
