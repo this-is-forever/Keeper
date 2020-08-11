@@ -19,8 +19,6 @@ public class PasswordArchiveManager {
     private final File entryKeyFile;
 
     private Cryptographer entryCryptographer;
-    //private Cryptographer oldArchiveCryptographer;
-    //private Cryptographer oldEntryCryptographer;
     private SensitiveFileScribe scribe;
     private DestroyableKey entryKey;
 
@@ -33,7 +31,6 @@ public class PasswordArchiveManager {
      */
     public PasswordArchiveManager(char[] password, File keyFile) {
         scribe = new SensitiveFileScribe(new AESGCMCryptographerWithPasswordBasedKeyDerivation(password));
-        //oldArchiveCryptographer = new PasswordBasedCryptographer(password);
         entryKeyFile = keyFile;
     }
 
@@ -45,15 +42,11 @@ public class PasswordArchiveManager {
             keyBytes = Utility.generateRandomBytes(PASSWORD_KEY_LENGTH);
         else {
             keyBytes = scribe.readAndDecrypt(entryKeyFile);
-            /*try (FileInputStream in = new FileInputStream(entryKeyFile)) {
-                byte[] data = in.readAllBytes();
-                keyBytes = oldArchiveCryptographer.decrypt(data);
-            }*/
         }
         // Create handles to the keys which can be used by AES
         entryKey = new DestroyableKey(keyBytes);
         entryCryptographer = new AESGCMCryptographerWithKey(entryKey);
-        //oldEntryCryptographer = new PremadeKeyCryptographer(entryKey, new DestroyableKey(keyBytes, PASSWORD_KEY_LENGTH, PASSWORD_KEY_LENGTH));
+        Utility.erase(keyBytes);
     }
 
     /**
@@ -104,11 +97,7 @@ public class PasswordArchiveManager {
      */
     public ArrayList<Entry> openDatabase(File f) throws CryptographicFailureException, IOException {
         byte[] plaintext = scribe.readAndDecrypt(f);
-        /*byte[] plaintext;
-        try (FileInputStream in = new FileInputStream(f)) {
-            byte[] data = in.readAllBytes();
-            plaintext = oldArchiveCryptographer.decrypt(data);
-        }*/
+
         if(plaintext == null)
             return null;
         // Decryption was successful; continue
@@ -157,8 +146,6 @@ public class PasswordArchiveManager {
                 assert dataReader.hasRemaining() : "Error: unexpectedly reached end of archive while parsing password";
                 data = new byte[size];
                 dataReader.get(data);
-                //byte[] unencrypted = oldEntryCryptographer.decrypt(data);
-                //data = entryCryptographer.encrypt(unencrypted);
             } else
                 data = null;
             entries.add(new Entry(website, username, data));
