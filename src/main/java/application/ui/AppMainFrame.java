@@ -2,6 +2,7 @@ package application.ui;
 
 import application.ConfigurationManager;
 import application.Main;
+import com.github.thisisforever.crypto.CryptographicFailureException;
 import crypto.*;
 import swingextended.*;
 
@@ -15,6 +16,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -296,23 +298,14 @@ public class AppMainFrame extends ExLayeredFrame {
             entries = new ArrayList<>();
             try {
                 archiveManager.populateEntryKeys();
-            } catch (DataFormatException e) {
-                e.printStackTrace();
+            } catch (CryptographicFailureException e) {
                 JOptionPane.showMessageDialog(this,
-                        "Your key file appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
-                System.exit(0);
-            } catch (UnsupportedSystemException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "Unable to initiate the cryptographic library", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            } catch (AuthenticationException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                        "Authentication of your key file failed.. was it tampered with?",
+                        "Opening key file failed - Unable to authenticate data!",
                         "Error", JOptionPane.ERROR_MESSAGE);
-            } catch(InvalidKeyException e) {
-                JOptionPane.showMessageDialog(this, "Incorrect password!",
+                System.exit(0);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Error occurred while opening key file",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 System.exit(0);
             }
@@ -323,23 +316,14 @@ public class AppMainFrame extends ExLayeredFrame {
             new Thread(() ->{
                 try {
                     archiveManager.populateEntryKeys();
-                } catch (DataFormatException e) {
-                    e.printStackTrace();
+                } catch (CryptographicFailureException e) {
                     JOptionPane.showMessageDialog(this,
-                            "Your key file appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
-                    System.exit(0);
-                } catch (UnsupportedSystemException e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                            "Unable to initiate the cryptographic library", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                } catch (AuthenticationException e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                            "Authentication of your key file failed.. was it tampered with?",
+                            "Opening key file failed - Unable to authenticate data!",
                             "Error", JOptionPane.ERROR_MESSAGE);
-                } catch(InvalidKeyException e) {
-                    JOptionPane.showMessageDialog(this, "Incorrect password!",
+                    System.exit(0);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(this,
+                            "Error occurred while opening key file",
                             "Error", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
                 }
@@ -364,23 +348,14 @@ public class AppMainFrame extends ExLayeredFrame {
                         // Get rid of the wait dialog now that we're done
                         waitDialog.setVisible(false);
                     });
-                } catch (DataFormatException e) {
-                    e.printStackTrace();
+                } catch (CryptographicFailureException e) {
                     JOptionPane.showMessageDialog(this,
-                            "Your archive appears to be corrupted", "Error", JOptionPane.ERROR_MESSAGE);
-                    System.exit(0);
-                } catch (UnsupportedSystemException e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                            "Unable to initiate the cryptographic library", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                } catch (AuthenticationException e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                            "Authentication of your archive file failed.. was it tampered with?",
+                            "Opening archive failed - Unable to authenticate archive data!",
                             "Error", JOptionPane.ERROR_MESSAGE);
-                } catch(InvalidKeyException e) {
-                    JOptionPane.showMessageDialog(this, "Incorrect password!",
+                    System.exit(0);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(this,
+                            "Error occurred while opening archive",
                             "Error", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
                 }
@@ -443,14 +418,7 @@ public class AppMainFrame extends ExLayeredFrame {
                 configuration.store();
 
                 copyToClipboard("");
-                try {
-                    archiveManager.closeDatabase(archiveFile, entries);
-                } catch (UnsupportedSystemException e) {
-                    JOptionPane.showMessageDialog(this,
-                            "Fatal Error: Unable to initiate AES with CBC; algorithm unsupported by " +
-                                    "your system",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                archiveManager.closeDatabase(archiveFile, entries);
                 passwordDialog.dispose();
                 waitDialog.dispose();
                 passwordLengthDialog.dispose();
@@ -529,23 +497,11 @@ public class AppMainFrame extends ExLayeredFrame {
         usernameField.setText(entry.getUsername());
         try {
             passwordField.setText(entry.getPassword(archiveManager));
-        } catch (InvalidKeyException e) {
+        } catch (CryptographicFailureException e) {
             JOptionPane.showMessageDialog(this,
-                "The key in keeper.key was unable to encrypt the given entry's password. Ensure you are " +
-                        "using the correct keeper.key file.",
-                "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (AuthenticationException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Authentication of this entry's password data failed.. was it tampered with?",
+                    "Decrypting this password entry failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (UnsupportedSystemException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Fatal Error: Unable to initiate AES with CBC; algorithm unsupported by your system.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (DataFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Data misalignment within this entry; was data tampered with?",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
         changedWithoutSaving = false;
     }
@@ -641,23 +597,11 @@ public class AppMainFrame extends ExLayeredFrame {
         usernameField.setText(entry.getUsername());
         try {
             passwordField.setText(entry.getPassword(archiveManager));
-        } catch (InvalidKeyException e) {
+        } catch (CryptographicFailureException e) {
             JOptionPane.showMessageDialog(this,
-                    "The key in keeper.key was unable to encrypt the given entry's password. Ensure you are " +
-                            "using the correct keeper.key file.",
+                    "Decrypting this password entry failed!",
                     "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (AuthenticationException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Authentication of this entry's password data failed.. was it tampered with?",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (UnsupportedSystemException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Fatal Error: Unable to initiate AES with CBC; algorithm unsupported by your system.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (DataFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Data misalignment within this entry; was data tampered with?",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
         currentEntry = uiEntry;
         currentEntry.selected();

@@ -1,7 +1,6 @@
-package crypto;
+package com.github.thisisforever.crypto;
 
 import javax.crypto.SecretKey;
-import javax.security.auth.DestroyFailedException;
 import java.util.Arrays;
 
 /**
@@ -77,7 +76,7 @@ public class DestroyableKey implements SecretKey {
 
     /**
      * Erases the key's underlying byte array
-     * @throws IllegalStateException in the event {@link DestroyableKey#destroy} was already called upon this key
+     * @throws IllegalStateException in the event the key was previously destroyed
      */
     @Override
     public void destroy() {
@@ -86,6 +85,7 @@ public class DestroyableKey implements SecretKey {
         }
         destroyed = true;
         Arrays.fill(keyData, (byte)0);
+        keyData = null;
     }
 
     /**

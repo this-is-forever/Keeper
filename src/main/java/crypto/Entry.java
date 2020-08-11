@@ -1,5 +1,7 @@
 package crypto;
 
+import com.github.thisisforever.crypto.CryptographicFailureException;
+
 /**
  * Defines a password entry, with website, username and password information
  */
@@ -63,12 +65,7 @@ public class Entry implements Comparable<Entry> {
         if(password.length == 0) {
             passwordData = null;
         } else {
-            try {
-                passwordData = manager.encryptPassword(password);
-            } catch(UnsupportedSystemException | InvalidKeyException e) {
-                throw new RuntimeException("Unable to encrypt password data; your system does not support " +
-                        "the given encryption algorithm");
-            }
+            passwordData = manager.encryptPassword(password);
         }
     }
 
@@ -86,8 +83,7 @@ public class Entry implements Comparable<Entry> {
      * @return a {@link String} object containing the decrypted password, or an empty {@link String} if this
      * entry does not have any password data
      */
-    public String getPassword(PasswordArchiveManager manager) throws UnsupportedSystemException, InvalidKeyException,
-            DataFormatException, AuthenticationException {
+    public String getPassword(PasswordArchiveManager manager) throws CryptographicFailureException {
         if(passwordData == null) {
             return "";
         }
